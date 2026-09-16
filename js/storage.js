@@ -1,5 +1,5 @@
 /**
- * Kira Enterprise V4 — Storage Abstraction (Cloudflare D1 Worker Integrated - Fully Fixed)
+ * Kira Enterprise V4 — Storage Abstraction (Cloudflare D1 Worker Integrated - Complete Fix)
  */
 (function (global) {
   'use strict';
@@ -11,10 +11,25 @@
     COMPANIES: 'kiraV4_userCompanies',
   };
 
-  // 1. Simpan Syarikat Ke Cloudflare D1 (Dengan Perlindungan Data Jurnal)
+  // Penjana ID Unik berasaskan Nama Syarikat
+  function generateUniqueClientId(companyName) {
+    if (!companyName) return 'client-' + Date.now();
+    const cleanName = companyName
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '')
+      .substring(0, 10);
+    const randomHash = Math.floor(1000 + Math.random() * 9000);
+    return `${cleanName}-${randomHash}`;
+  }
+
+  // 1. Simpan Syarikat Ke D1 (Perlindungan Data Jurnal + Auto ID)
   function saveClient(company) {
     if (!company) return Promise.resolve({ success: false });
-    if (!company.id) company.id = company.clientId || ('c-' + Date.now());
+
+    if (!company.clientId && !company.id) {
+      company.clientId = generateUniqueClientId(company.name);
+      company.id = company.clientId;
+    }
     const clientId = company.clientId || company.id;
 
     return loadUserCompanies().then(async function (companies) {
@@ -25,13 +40,12 @@
         companies.push(company);
       }
 
-      // Pastikan entries tidak bertukar jadi [] jika tidak dihantar bersama objek company
+      // Elak menimpa entri jurnal sedia ada dengan array kosong
       let entriesToSave = company.entries;
       if (!entriesToSave || !entriesToSave.length) {
         entriesToSave = await getJournalEntries(clientId);
       }
 
-      // Hantar senarai syarikat & data ke D1 Database
       return fetch('/api/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -48,7 +62,7 @@
     });
   }
 
-  // 2. Simpan Entri Jurnal Ke Cloudflare D1
+  // 2. Simpan Entri Jurnal Ke D1 Database
   function saveUserCompanyEntries(companyId, entries) {
     return fetch('/api/save', {
       method: 'POST',
@@ -67,7 +81,7 @@
       });
   }
 
-  // 3. Muat Senarai Syarikat dari Cache / Memory
+  // 3. Muat Senarai Syarikat
   function loadUserCompanies() {
     return new Promise(function (resolve) {
       var raw = localStorage.getItem(STORAGE_KEYS.COMPANIES);
@@ -79,7 +93,7 @@
     });
   }
 
-  // 4. Muat Jurnal Syarikat dari D1 Database
+  // 4. Muat Jurnal Syarikat dari D1
   function getJournalEntries(clientId) {
     if (!clientId) return Promise.resolve([]);
     return fetch(`/api/load?clientId=${encodeURIComponent(clientId)}`)
@@ -139,6 +153,7 @@
     clearKey: key => Promise.resolve(localStorage.removeItem(key)),
     saveToLocalStorage: save,
     loadFromLocalStorage: load,
+    generateUniqueClientId: generateUniqueClientId,
     saveUserCompanyEntries: saveUserCompanyEntries,
     loadUserCompanies: loadUserCompanies,
     saveJournalEntry: (clientId, entry) => getJournalEntries(clientId).then(entries => {
