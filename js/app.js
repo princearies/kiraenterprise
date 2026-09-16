@@ -1,7 +1,7 @@
 /**
  * Kira Enterprise V4 — Multi-Client Accounting System (Main App Controller)
- * Data flow: mock-data-v4.json → Storage (D1/localStorage) → Ledger → Reports
- * Production-ready for Cloudflare deployment
+ * Data flow: mock-data-v4.json → Storage (D1/localStorage) → Ledger → Reports.
+ * Production-ready for Cloudflare deployment.
  */
 (function (global) {
   'use strict';
@@ -30,7 +30,7 @@
       .then(function (data) {
         if (data && data.companies) {
           companiesCache = data.companies;
-          // Save METADATA only — entries are lazy-loaded on demand
+          // 1) Save METADATA only — entries are lazy-loaded on demand
           data.companies.forEach(function (company) {
             if (global.Storage && global.Storage.saveClient) {
               global.Storage.saveClient({
@@ -43,9 +43,9 @@
               });
             }
           });
-          // Populate dropdown
+          // 2) Populate dropdown
           populateCompanyDropdown(data.companies);
-          // Auto-load first company
+          // 3) Auto-load first company
           if (data.companies.length > 0) {
             loadCompanyData(data.companies[0]);
           }
@@ -229,12 +229,35 @@
   function refreshJournalList() {
     var list = document.getElementById('journal-list');
     if (!list || !currentClientId) return;
-    var entries = [];
-    try {
-      entries = JSON.parse(localStorage.getItem('kiraV4_entries_' + currentClientId) || '[]');
-    } catch (e) { entries = []; }
-    if (!entries || entries.length === 0) { list.innerHTML = '<p>Tiada entri untuk ' + (currentClientId || '') + '.</p>'; return; }
-    var html = '<h3>Senarai Jurnal (' + entries.length + '):</h3><table border="1" cellpadding="4" cellspacing="0" style="width:100%;border-collapse:collapse;"><tr><th>Tarikh</th><th>Penerangan</th><th>Baris</th><th>Actions</th></tr>';
+    
+    // GUNA STORAGE MODULE untuk load dari D1
+    if (global.Storage && global.Storage.getJournalEntries) {
+      list.innerHTML = '<p>Memuatkan data...</p>';
+      global.Storage.getJournalEntries(currentClientId).then(function(entries) {
+        renderJournalListUI(list, entries || []);
+      }).catch(function(err) {
+        console.error('Load entries error:', err);
+        var fallbackEntries = [];
+        try { fallbackEntries = JSON.parse(localStorage.getItem('kiraV4_entries_' + currentClientId) || '[]'); } catch (e) {}
+        renderJournalListUI(list, fallbackEntries);
+      });
+    } else {
+      var entries = [];
+      try { entries = JSON.parse(localStorage.getItem('kiraV4_entries_' + currentClientId) || '[]'); } catch (e) {}
+      renderJournalListUI(list, entries);
+    }
+  }
+
+  function renderJournalListUI(list, entries) {
+    if (!entries || entries.length === 0) { 
+      list.innerHTML = '<p>Tiada entri untuk ' + (currentClientId || '') + '.</p>'; 
+      return; 
+    }
+    
+    var html = '<h3>Senarai Jurnal (' + entries.length + '):</h3>' +
+      '<table border="1" cellpadding="4" cellspacing="0" style="width:100%;border-collapse:collapse;">' +
+      '<tr><th>Tarikh</th><th>Penerangan</th><th>Baris</th><th>Actions</th></tr>';
+      
     entries.forEach(function (e) {
       html += '<tr>';
       html += '<td>' + (e.date || '') + '</td>';
@@ -242,7 +265,7 @@
       html += '<td>' + (e.lines ? e.lines.length : 0) + '</td>';
       html += '<td>';
       html += '<button class="btn-edit" onclick="App.editEntry(\'' + (e.id || '') + '\')">✏️ Edit</button> ';
-      html += '<button class="btn-delete" onclick="App.deleteEntry(\'' + (e.id || '') + '\')">️ Delete</button>';
+      html += '<button class="btn-delete" onclick="App.deleteEntry(\'' + (e.id || '') + '\')">🗑️ Delete</button>';
       html += '</td>';
       html += '</tr>';
     });
@@ -324,7 +347,7 @@
       global.Journal.deleteEntry(currentClientId, entryId);
       refreshJournalList();
       recalcAll();
-      showToast('️ Entry deleted');
+      showToast('🗑️ Entry deleted');
     } else {
       showToast('Delete function not available');
     }
