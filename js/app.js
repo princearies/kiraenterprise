@@ -242,7 +242,7 @@
       html += '<td>' + (e.lines ? e.lines.length : 0) + '</td>';
       html += '<td>';
       html += '<button class="btn-edit" onclick="App.editEntry(\'' + (e.id || '') + '\')">✏️ Edit</button> ';
-      html += '<button class="btn-delete" onclick="App.deleteEntry(\'' + (e.id || '') + '\')">🗑️ Delete</button>';
+      html += '<button class="btn-delete" onclick="App.deleteEntry(\'' + (e.id || '') + '\')">️ Delete</button>';
       html += '</td>';
       html += '</tr>';
     });
@@ -513,7 +513,7 @@
   function exportPdf(elementId, filename) {
     var element = document.getElementById(elementId);
     if (!element) {
-      showToast(' Panel not found');
+      showToast('⚠ Panel not found');
       return;
     }
     var clone = element.cloneNode(true);
