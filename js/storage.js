@@ -1,40 +1,55 @@
-function saveUserCompanyEntries(clientId, entries) {
-  if (!clientId) {
-    return Promise.resolve({ success: false, error: 'Missing clientId' });
+// js/storage.js
+
+var Storage = (function () {
+  'use strict';
+
+  var STORAGE_KEY = 'kira_enterprise_companies';
+
+  // 1. Ambil semua senarai syarikat dari LocalStorage
+  function getCompanies() {
+    try {
+      var data = localStorage.getItem(STORAGE_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      console.error('Ralat membaca storage:', e);
+      return [];
+    }
   }
-  
-  // Ensure entries is an array
-  if (!Array.isArray(entries)) {
-    entries = [];
+
+  // 2. Simpan atau Kemaskini Syarikat
+  function saveCompany(companyObj) {
+    var companies = getCompanies();
+    var index = companies.findIndex(function (c) {
+      return String(c.code || c.id) === String(companyObj.code || companyObj.id);
+    });
+
+    if (index >= 0) {
+      companies[index] = companyObj;
+    } else {
+      companies.push(companyObj);
+    }
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(companies));
   }
-  
-  // Save to localStorage first (instant feedback)
-  try {
-    localStorage.setItem('kiraV4_entries_' + clientId, JSON.stringify(entries));
-  } catch (e) {
-    console.error('localStorage save failed:', e);
+
+  // 3. Padam Syarikat
+  function deleteCompany(companyCode) {
+    var companies = getCompanies();
+    var filtered = companies.filter(function (c) {
+      return String(c.code || c.id) !== String(companyCode);
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
   }
-  
-  // Then save to D1 via API
-  return fetch('/api/save', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ 
-      clientId: clientId, 
-      entries: entries,
-      company_meta: { updated: new Date().toISOString() }
-    })
-  })
-  .then(function(res) { 
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    return res.json(); 
-  })
-  .then(function(data) { 
-    console.log('D1 save success:', data);
-    return { success: true }; 
-  })
-  .catch(function(err) {
-    console.error('D1 save failed:', err);
-    return { success: false, error: err.message, warning: 'Saved to localStorage only' };
-  });
+
+  // EXPORT FUNGSI KE GLOBAL STORAGE OBJECT
+  return {
+    getCompanies: getCompanies,
+    saveCompany: saveCompany,
+    deleteCompany: deleteCompany
+  };
+})();
+
+// Eksport untuk sokongan Node/Browser
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { Storage: Storage };
 }
