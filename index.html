@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kira Enterprise V4 — Accounting System</title>
+  <meta name="description" content="Sistem perakaunan enterprise — jurnal, buku besar, imbangan percubaan, P&amp;L, kunci kira-kira, aliran tunai, cukai.">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/responsive.css" media="screen">
+  <link rel="stylesheet" href="css/print.css?v=3" media="print">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Kira Enterprise V4</h1>
+      <div class="subtitle">MFRS / MPERS — Multi-Client Double-Entry System</div>
+      <div style="margin-top:8px; color: var(--text-muted); font-size: 13px;">
+        Company Type:
+        <select id="companyType" onchange="App.updateTaxRate()" style="padding:4px 8px;border-radius:4px;background:#1e293b;color:#fff;border:1px solid #334155;font-family:inherit;margin-right:4px;">
+          <option value="sdn_bhd_small">Sdn Bhd Small (15%/17%)</option>
+          <option value="sdn_bhd_normal" selected>Sdn Bhd Normal (24%)</option>
+          <option value="enterprise">Enterprise (0% — personal tax)</option>
+          <option value="llp">LLP (24%)</option>
+        </select>
+        Tax Rate: <input type="number" id="tax-rate" value="24" min="0" max="100" step="0.1" style="width:60px;padding:4px 6px;border-radius:4px;border:1px solid #334155;background:#0b1220;color:#fff;font-family:inherit;"> %
+      </div>
+      <div class="card" style="margin-top:12px;">
+        <label style="font-weight:bold;color:#fbbf24;">Company:</label>
+        <div class="company-selector">
+          <label for="company-select">Select:</label>
+          <select id="company-select" onchange="App.changeCompany(this.value)">
+            <option value="">-- Select Company --</option>
+            <option value="bida">Bida Enterprise (12 entries)</option>
+            <option value="lawa">Lawa Enterprise (14 entries)</option>
+            <option value="maju">Maju Enterprise (15 entries)</option>
+            <option value="sinar">Sinar Enterprise (16 entries)</option>
+            <option value="cekap">Cekap Enterprise (18 entries)</option>
+            <option value="rugi">Rugi Enterprise (14 entries)</option>
+          </select>
+          <button class="btn-add-company" onclick="App.addNewCompany()">+ Add Company</button>
+          <button class="btn-save-company" onclick="App.saveCurrentCompany()">Save</button>
+        </div>
+      </div>
+    </header>
+
+    <nav class="tab-nav" aria-label="Main tabs">
+      <button class="tab-btn active" id="tab-journal" onclick="App.switchTab('journal');">Journal</button>
+      <button class="tab-btn" id="tab-ledger" onclick="App.switchTab('ledger');">Ledger</button>
+      <button class="tab-btn" id="tab-tb" onclick="App.switchTab('trial');">Trial Balance</button>
+      <button class="tab-btn" id="tab-pl" onclick="App.switchTab('pl');">Trading &amp; P&amp;L</button>
+      <button class="tab-btn" id="tab-bs" onclick="App.switchTab('bs');">Balance Sheet</button>
+      <button class="tab-btn" id="tab-cf" onclick="App.switchTab('cashflow');">Cash Flow</button>
+      <button class="tab-btn" id="tab-tax" onclick="App.switchTab('tax');">Tax</button>
+      <button class="tab-btn" id="btn-export-pdf" onclick="App.exportPdf(document.querySelector('section[style*=\'block\']') ? document.querySelector('section[style*=\'block\']').id : 'panel-journal', 'KiraV4-Report')" title="Export report semasa sebagai PDF">📄 Export PDF</button>
+    </nav>
+
+    <section id="panel-journal" style="display:block;"></section>
+    <section id="panel-ledger" style="display:none;"></section>
+    <section id="panel-trial" style="display:none;"></section>
+    <section id="panel-pl" style="display:none;"></section>
+    <section id="panel-bs" style="display:none;"></section>
+    <section id="panel-cashflow" style="display:none;"></section>
+    <section id="panel-tax" style="display:none;">
+      <h2>Tax Computation</h2>
+      <div id="tax-output">Select a company.</div>
+      <h2>Capital Allowance</h2>
+      <div id="ca-output">Select a company.</div>
+    </section>
+
+    <div id="toast" aria-live="polite"></div>
+  </div>
+
+  <script src="js/utils.js?v=4"></script>
+  <script src="js/storage.js?v=5"></script>
+  <script src="js/chart-of-accounts.js?v=4"></script>
+  <script src="js/validation.js?v=4"></script>
+  <script src="js/journal.js?v=4"></script>
+  <script src="js/ledger.js?v=4"></script>
+  <script src="js/trial-balance.js?v=4"></script>
+  <script src="js/trading-pl.js?v=4"></script>
+  <script src="js/balance-sheet.js?v=5"></script>
+  <script src="js/cash-flow.js?v=4"></script>
+  <script src="js/tax-computation.js?v=4"></script>
+  <script src="js/capital-allowance.js?v=4"></script>
+  <script src="js/html2pdf.bundle.min.js?v=1"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+  <script src="js/app.js?v=6"></script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+{
+  "companies": [
+    {
+      "clientId": "small-001",
+      "name": "Aman Kecil",
+      "code": "AK-01",
+      "type": "sdn_bhd_small",
+      "taxRate": 15,
+      "yearEnd": 2025,
+      "journalEntries": [
+        { "id": "je-001", "date": "2025-01-01", "description": "Modal awal", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 50000, "credit": 0 }, { "accountCode": "3000", "accountName": "Share Capital", "debit": 0, "credit": 50000 }] },
+        { "id": "je-002", "date": "2025-01-05", "description": "Jual barang cash", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 30000, "credit": 0 }, { "accountCode": "4000", "accountName": "Sales — Cash", "debit": 0, "credit": 30000 }] },
+        { "id": "je-003", "date": "2025-01-10", "description": "Beli inventory", "lines": [{ "accountCode": "5010", "accountName": "Purchases", "debit": 15000, "credit": 0 }, { "accountCode": "2000", "accountName": "Trade Payables", "debit": 0, "credit": 15000 }] },
+        { "id": "je-004", "date": "2025-01-15", "description": "Bayar sewa", "lines": [{ "accountCode": "6100", "accountName": "Rent", "debit": 2000, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 2000 }] },
+        { "id": "je-005", "date": "2025-01-20", "description": "Beli motor", "lines": [{ "accountCode": "1510", "accountName": "Motor Vehicles", "debit": 40000, "credit": 0 }, { "accountCode": "2200", "accountName": "Long-term Loan", "debit": 0, "credit": 40000 }] },
+        { "id": "je-006", "date": "2025-01-25", "description": "Depreciation motor", "lines": [{ "accountCode": "6300", "accountName": "Depreciation", "debit": 500, "credit": 0 }, { "accountCode": "1550", "accountName": "Accumulated Depreciation — Motor", "debit": 0, "credit": 500 }] },
+        { "id": "je-007", "date": "2025-01-28", "description": "Jual kredit kepada customer", "lines": [{ "accountCode": "1100", "accountName": "Trade Receivables", "debit": 15000, "credit": 0 }, { "accountCode": "4000", "accountName": "Sales — Credit", "debit": 0, "credit": 15000 }] },
+        { "id": "je-008", "date": "2025-01-30", "description": "Bayar gaji", "lines": [{ "accountCode": "6000", "accountName": "Salary & Wages", "debit": 8000, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 8000 }] },
+        { "id": "je-009", "date": "2025-01-31", "description": "Bayar bank charges", "lines": [{ "accountCode": "6220", "accountName": "Bank Charges", "debit": 200, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 200 }] },
+        { "id": "je-010", "date": "2025-12-31", "description": "Closing inventory", "lines": [{ "accountCode": "1200", "accountName": "Inventory", "debit": 8000, "credit": 0 }, { "accountCode": "5020", "accountName": "Closing Inventory", "debit": 0, "credit": 8000 }] },
+        { "id": "je-011", "date": "2025-12-31", "description": "Bayar manfaat", "lines": [{ "accountCode": "6010", "accountName": "EPF Contribution", "debit": 800, "credit": 0 }, { "accountCode": "6020", "accountName": "SOCSO Contribution", "debit": 160, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 960 }] }
+      ]
+    },
+    {
+      "clientId": "small-002",
+      "name": "Bumi Mini",
+      "code": "BM-02",
+      "type": "sdn_bhd_small",
+      "taxRate": 15,
+      "yearEnd": 2025,
+      "journalEntries": [
+        { "id": "je-001", "date": "2025-02-01", "description": "Modal awal", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 60000, "credit": 0 }, { "accountCode": "3000", "accountName": "Share Capital", "debit": 0, "credit": 60000 }] },
+        { "id": "je-002", "date": "2025-02-05", "description": "Jual cash", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 25000, "credit": 0 }, { "accountCode": "4000", "accountName": "Sales — Cash", "debit": 0, "credit": 25000 }] },
+        { "id": "je-003", "date": "2025-02-10", "description": "Beli inventory", "lines": [{ "accountCode": "5010", "accountName": "Purchases", "debit": 12000, "credit": 0 }, { "accountCode": "2000", "accountName": "Trade Payables", "debit": 0, "credit": 12000 }] },
+        { "id": "je-004", "date": "2025-02-15", "description": "Bayar sewa", "lines": [{ "accountCode": "6100", "accountName": "Rent", "debit": 1800, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 1800 }] },
+        { "id": "je-005", "date": "2025-02-20", "description": "Beli motor", "lines": [{ "accountCode": "1510", "accountName": "Motor Vehicles", "debit": 35000, "credit": 0 }, { "accountCode": "2200", "accountName": "Long-term Loan", "debit": 0, "credit": 35000 }] },
+        { "id": "je-006", "date": "2025-02-25", "description": "Depreciation motor", "lines": [{ "accountCode": "6300", "accountName": "Depreciation", "debit": 350, "credit": 0 }, { "accountCode": "1550", "accountName": "Accumulated Depreciation — Motor", "debit": 0, "credit": 350 }] },
+        { "id": "je-007", "date": "2025-02-28", "description": "Bayar gaji", "lines": [{ "accountCode": "6000", "accountName": "Salary & Wages", "debit": 7000, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 7000 }] },
+        { "id": "je-008", "date": "2025-03-01", "description": "Jual kredit", "lines": [{ "accountCode": "1100", "accountName": "Trade Receivables", "debit": 18000, "credit": 0 }, { "accountCode": "4000", "accountName": "Sales — Credit", "debit": 0, "credit": 18000 }] },
+        { "id": "je-009", "date": "2025-03-05", "description": "Bayar utiliti", "lines": [{ "accountCode": "6110", "accountName": "Utilities", "debit": 600, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 600 }] },
+        { "id": "je-010", "date": "2025-12-31", "description": "Closing inventory", "lines": [{ "accountCode": "1200", "accountName": "Inventory", "debit": 6500, "credit": 0 }, { "accountCode": "5020", "accountName": "Closing Inventory", "debit": 0, "credit": 6500 }] }
+      ]
+    },
+    {
+      "clientId": "small-003",
+      "name": "Cemerlang Tech",
+      "code": "CT-03",
+      "type": "sdn_bhd_small",
+      "taxRate": 15,
+      "yearEnd": 2025,
+      "journalEntries": [
+        { "id": "je-001", "date": "2025-03-01", "description": "Modal awal", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 75000, "credit": 0 }, { "accountCode": "3000", "accountName": "Share Capital", "debit": 0, "credit": 75000 }] },
+        { "id": "je-002", "date": "2025-03-05", "description": "Jual barang cash", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 45000, "credit": 0 }, { "accountCode": "4000", "accountName": "Sales — Cash", "debit": 0, "credit": 45000 }] },
+        { "id": "je-003", "date": "2025-03-10", "description": "Beli inventory", "lines": [{ "accountCode": "5010", "accountName": "Purchases", "debit": 18000, "credit": 0 }, { "accountCode": "2000", "accountName": "Trade Payables", "debit": 0, "credit": 18000 }] },
+        { "id": "je-004", "date": "2025-03-15", "description": "Bayar sewa", "lines": [{ "accountCode": "6100", "accountName": "Rent", "debit": 2200, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 2200 }] },
+        { "id": "je-005", "date": "2025-03-20", "description": "Beli motor", "lines": [{ "accountCode": "1510", "accountName": "Motor Vehicles", "debit": 42000, "credit": 0 }, { "accountCode": "2200", "accountName": "Long-term Loan", "debit": 0, "credit": 42000 }] },
+        { "id": "je-006", "date": "2025-03-25", "description": "Depreciation", "lines": [{ "accountCode": "6300", "accountName": "Depreciation", "debit": 420, "credit": 0 }, { "accountCode": "1550", "accountName": "Accumulated Depreciation — Motor", "debit": 0, "credit": 420 }] },
+        { "id": "je-007", "date": "2025-03-28", "description": "Jual kredit", "lines": [{ "accountCode": "1100", "accountName": "Trade Receivables", "debit": 22000, "credit": 0 }, { "accountCode": "4000", "accountName": "Sales — Credit", "debit": 0, "credit": 22000 }] },
+        { "id": "je-008", "date": "2025-03-30", "description": "Gaji & manfaat", "lines": [{ "accountCode": "6000", "accountName": "Salary & Wages", "debit": 9000, "credit": 0 }, { "accountCode": "6010", "accountName": "EPF Contribution", "debit": 900, "credit": 0 }, { "accountCode": "6020", "accountName": "SOCSO Contribution", "debit": 180, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 10080 }] },
+        { "id": "je-009", "date": "2025-03-31", "description": "Bank charges", "lines": [{ "accountCode": "6220", "accountName": "Bank Charges", "debit": 250, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 250 }] },
+        { "id": "je-010", "date": "2025-12-31", "description": "Closing inventory", "lines": [{ "accountCode": "1200", "accountName": "Inventory", "debit": 9500, "credit": 0 }, { "accountCode": "5020", "accountName": "Closing Inventory", "debit": 0, "credit": 9500 }] }
+      ]
+    },
+    {
+      "clientId": "normal-001",
+      "name": "Global Trade",
+      "code": "GT-01",
+      "type": "sdn_bhd_normal",
+      "taxRate": 24,
+      "yearEnd": 2025,
+      "journalEntries": [
+        { "id": "je-001", "date": "2025-02-01", "description": "Modal awal", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 100000, "credit": 0 }, { "accountCode": "3000", "accountName": "Share Capital", "debit": 0, "credit": 100000 }] },
+        { "id": "je-002", "date": "2025-02-05", "description": "Jual cash", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 60000, "credit": 0 }, { "accountCode": "4000", "accountName": "Sales — Cash", "debit": 0, "credit": 60000 }] },
+        { "id": "je-003", "date": "2025-02-10", "description": "Beli inventory", "lines": [{ "accountCode": "5010", "accountName": "Purchases", "debit": 25000, "credit": 0 }, { "accountCode": "2000", "accountName": "Trade Payables", "debit": 0, "credit": 25000 }] },
+        { "id": "je-004", "date": "2025-02-15", "description": "Beli motor", "lines": [{ "accountCode": "1510", "accountName": "Motor Vehicles", "debit": 55000, "credit": 0 }, { "accountCode": "2200", "accountName": "Long-term Loan", "debit": 0, "credit": 55000 }] },
+        { "id": "je-005", "date": "2025-02-20", "description": "Depreciation motor", "lines": [{ "accountCode": "6300", "accountName": "Depreciation", "debit": 550, "credit": 0 }, { "accountCode": "1550", "accountName": "Accumulated Depreciation — Motor", "debit": 0, "credit": 550 }] },
+        { "id": "je-006", "date": "2025-02-25", "description": "Bayar sewa", "lines": [{ "accountCode": "6100", "accountName": "Rent", "debit": 3000, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 3000 }] },
+        { "id": "je-007", "date": "2025-03-01", "description": "Ayat gaji & EPF", "lines": [{ "accountCode": "6000", "accountName": "Salary & Wages", "debit": 12000, "credit": 0 }, { "accountCode": "6010", "accountName": "EPF Contribution", "debit": 1200, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 13200 }] },
+        { "id": "je-008", "date": "2025-03-15", "description": "Jual kredit", "lines": [{ "accountCode": "1100", "accountName": "Trade Receivables", "debit": 35000, "credit": 0 }, { "accountCode": "4000", "accountName": "Sales — Credit", "debit": 0, "credit": 35000 }] },
+        { "id": "je-009", "date": "2025-12-31", "description": "Closing inventory", "lines": [{ "accountCode": "1200", "accountName": "Inventory", "debit": 11000, "credit": 0 }, { "accountCode": "5020", "accountName": "Closing Inventory", "debit": 0, "credit": 11000 }] }
+      ]
+    },
+    {
+      "clientId": "normal-002",
+      "name": "Premier Manufacturing",
+      "code": "PM-02",
+      "type": "sdn_bhd_normal",
+      "taxRate": 24,
+      "yearEnd": 2025,
+      "journalEntries": [
+        { "id": "je-001", "date": "2025-03-01", "description": "Modal awal", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 120000, "credit": 0 }, { "accountCode": "3000", "accountName": "Share Capital", "debit": 0, "credit": 120000 }] },
+        { "id": "je-002", "date": "2025-03-05", "description": "Jual cash", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 70000, "credit": 0 }, { "accountCode": "4000", "accountName": "Sales — Cash", "debit": 0, "credit": 70000 }] },
+        { "id": "je-003", "date": "2025-03-10", "description": "Beli inventory", "lines": [{ "accountCode": "5010", "accountName": "Purchases", "debit": 35000, "credit": 0 }, { "accountCode": "2000", "accountName": "Trade Payables", "debit": 0, "credit": 35000 }] },
+        { "id": "je-004", "date": "2025-03-15", "description": "Beli motor", "lines": [{ "accountCode": "1510", "accountName": "Motor Vehicles", "debit": 80000, "credit": 0 }, { "accountCode": "2200", "accountName": "Long-term Loan", "debit": 0, "credit": 80000 }] },
+        { "id": "je-005", "date": "2025-03-20", "description": "Depreciation", "lines": [{ "accountCode": "6300", "accountName": "Depreciation", "debit": 800, "credit": 0 }, { "accountCode": "1550", "accountName": "Accumulated Depreciation — Motor", "debit": 0, "credit": 800 }] },
+        { "id": "je-006", "date": "2025-03-25", "description": "Bayar sewa", "lines": [{ "accountCode": "6100", "accountName": "Rent", "debit": 3500, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 3500 }] },
+        { "id": "je-007", "date": "2025-03-30", "description": "Gaji & EPF", "lines": [{ "accountCode": "6000", "accountName": "Salary & Wages", "debit": 15000, "credit": 0 }, { "accountCode": "6010", "accountName": "EPF Contribution", "debit": 1500, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 16500 }] },
+        { "id": "je-008", "date": "2025-04-05", "description": "Jual kredit", "lines": [{ "accountCode": "1100", "accountName": "Trade Receivables", "debit": 55000, "credit": 0 }, { "accountCode": "4000", "accountName": "Sales — Credit", "debit": 0, "credit": 55000 }] },
+        { "id": "je-009", "date": "2025-12-31", "description": "Closing inventory", "lines": [{ "accountCode": "1200", "accountName": "Inventory", "debit": 14000, "credit": 0 }, { "accountCode": "5020", "accountName": "Closing Inventory", "debit": 0, "credit": 14000 }] }
+      ]
+    },
+    {
+      "clientId": "normal-003",
+      "name": "Elite Services",
+      "code": "ES-03",
+      "type": "sdn_bhd_normal",
+      "taxRate": 24,
+      "yearEnd": 2025,
+      "journalEntries": [
+        { "id": "je-001", "date": "2025-04-01", "description": "Modal awal", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 90000, "credit": 0 }, { "accountCode": "3000", "accountName": "Share Capital", "debit": 0, "credit": 90000 }] },
+        { "id": "je-002", "date": "2025-04-05", "description": "Jual cash", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 50000, "credit": 0 }, { "accountCode": "4000", "accountName": "Sales — Cash", "debit": 0, "credit": 50000 }] },
+        { "id": "je-003", "date": "2025-04-10", "description": "Beli inventory", "lines": [{ "accountCode": "5010", "accountName": "Purchases", "debit": 20000, "credit": 0 }, { "accountCode": "2000", "accountName": "Trade Payables", "debit": 0, "credit": 20000 }] },
+        { "id": "je-004", "date": "2025-04-15", "description": "Beli komputer", "lines": [{ "accountCode": "1535", "accountName": "Computer & IT", "debit": 8000, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 8000 }] },
+        { "id": "je-005", "date": "2025-04-20", "description": "Depreciation IT", "lines": [{ "accountCode": "6300", "accountName": "Depreciation", "debit": 800, "credit": 0 }, { "accountCode": "1540", "accountName": "Accumulated Depreciation — PPE", "debit": 0, "credit": 800 }] },
+        { "id": "je-006", "date": "2025-04-25", "description": "Bayar sewa", "lines": [{ "accountCode": "6100", "accountName": "Rent", "debit": 2500, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 2500 }] },
+        { "id": "je-007", "date": "2025-04-30", "description": "Ayat gaji", "lines": [{ "accountCode": "6000", "accountName": "Salary & Wages", "debit": 11000, "credit": 0 }, { "accountCode": "6010", "accountName": "EPF Contribution", "debit": 1100, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 12100 }] },
+        { "id": "je-008", "date": "2025-05-05", "description": "Jual kredit", "lines": [{ "accountCode": "1100", "accountName": "Trade Receivables", "debit": 40000, "credit": 0 }, { "accountCode": "4000", "accountName": "Sales — Credit", "debit": 0, "credit": 40000 }] },
+        { "id": "je-009", "date": "2025-12-31", "description": "Closing inventory", "lines": [{ "accountCode": "1200", "accountName": "Inventory", "debit": 9500, "credit": 0 }, { "accountCode": "5020", "accountName": "Closing Inventory", "debit": 0, "credit": 9500 }] },
+        { "id": "je-010", "date": "2025-12-31", "description": "Zakat Perniagaan", "lines": [{ "accountCode": "6905", "accountName": "Zakat Perniagaan (Business Zakat)", "debit": 1500, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 1500 }] }
+      ]
+    },
+    {
+      "clientId": "enterprise-001",
+      "name": "Bida Enterprise",
+      "code": "BIDA-001",
+      "type": "enterprise",
+      "taxRate": 0,
+      "yearEnd": 2025,
+      "journalEntries": [
+        { "id": "je-001", "date": "2025-01-01", "description": "Modal awal", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 100000, "credit": 0 }, { "accountCode": "3000", "accountName": "Share Capital", "debit": 0, "credit": 100000 }] },
+        { "id": "je-002", "date": "2025-01-05", "description": "Jual cash", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 75000, "credit": 0 }, { "accountCode": "4000", "accountName": "Sales — Cash", "debit": 0, "credit": 75000 }] },
+        { "id": "je-003", "date": "2025-01-15", "description": "Beli inventory", "lines": [{ "accountCode": "5010", "accountName": "Purchases", "debit": 30000, "credit": 0 }, { "accountCode": "2000", "accountName": "Trade Payables", "debit": 0, "credit": 30000 }] },
+        { "id": "je-004", "date": "2025-01-20", "description": "Beli motor", "lines": [{ "accountCode": "1510", "accountName": "Motor Vehicles", "debit": 90000, "credit": 0 }, { "accountCode": "2200", "accountName": "Long-term Loan", "debit": 0, "credit": 90000 }] },
+        { "id": "je-005", "date": "2025-01-25", "description": "Depreciation", "lines": [{ "accountCode": "6300", "accountName": "Depreciation", "debit": 900, "credit": 0 }, { "accountCode": "1550", "accountName": "Accumulated Depreciation — Motor", "debit": 0, "credit": 900 }] },
+        { "id": "je-006", "date": "2025-01-30", "description": "Bayar sewa besar", "lines": [{ "accountCode": "6100", "accountName": "Rent", "debit": 5000, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 5000 }] },
+        { "id": "je-007", "date": "2025-02-05", "description": "Gaji & EPF", "lines": [{ "accountCode": "6000", "accountName": "Salary & Wages", "debit": 18000, "credit": 0 }, { "accountCode": "6010", "accountName": "EPF Contribution", "debit": 1800, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 19800 }] },
+        { "id": "je-008", "date": "2025-02-10", "description": "Jual kredit", "lines": [{ "accountCode": "1100", "accountName": "Trade Receivables", "debit": 85000, "credit": 0 }, { "accountCode": "4000", "accountName": "Sales — Credit", "debit": 0, "credit": 85000 }] },
+        { "id": "je-009", "date": "2025-12-31", "description": "Closing inventory", "lines": [{ "accountCode": "1200", "accountName": "Inventory", "debit": 12000, "credit": 0 }, { "accountCode": "5020", "accountName": "Closing Inventory", "debit": 0, "credit": 12000 }] },
+        { "id": "je-010", "date": "2025-12-31", "description": "Zakat Perniagaan", "lines": [{ "accountCode": "6905", "accountName": "Zakat Perniagaan (Business Zakat)", "debit": 3000, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 3000 }] }
+      ]
+    },
+    {
+      "clientId": "enterprise-002",
+      "name": "Lawa Enterprise",
+      "code": "LAWA-001",
+      "type": "enterprise",
+      "taxRate": 0,
+      "yearEnd": 2025,
+      "journalEntries": [
+        { "id": "je-001", "date": "2025-01-01", "description": "Modal awal", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 80000, "credit": 0 }, { "accountCode": "3000", "accountName": "Share Capital", "debit": 0, "credit": 80000 }] },
+        { "id": "je-002", "date": "2025-01-05", "description": "Jual cash", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 50000, "credit": 0 }, { "accountCode": "4000", "accountName": "Sales — Cash", "debit": 0, "credit": 50000 }] },
+        { "id": "je-003", "date": "2025-01-10", "description": "Beli inventory", "lines": [{ "accountCode": "5010", "accountName": "Purchases", "debit": 20000, "credit": 0 }, { "accountCode": "2000", "accountName": "Trade Payables", "debit": 0, "credit": 20000 }] },
+        { "id": "je-004", "date": "2025-01-15", "description": "Bayar gaji", "lines": [{ "accountCode": "6000", "accountName": "Salary & Wages", "debit": 12000, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 12000 }] },
+        { "id": "je-005", "date": "2025-01-20", "description": "Beli motor", "lines": [{ "accountCode": "1510", "accountName": "Motor Vehicles", "debit": 60000, "credit": 0 }, { "accountCode": "2200", "accountName": "Long-term Loan", "debit": 0, "credit": 60000 }] },
+        { "id": "je-006", "date": "2025-01-25", "description": "Depreciation", "lines": [{ "accountCode": "6300", "accountName": "Depreciation", "debit": 600, "credit": 0 }, { "accountCode": "1550", "accountName": "Accumulated Depreciation — Motor", "debit": 0, "credit": 600 }] },
+        { "id": "je-007", "date": "2025-02-05", "description": "Bayar sewa", "lines": [{ "accountCode": "6100", "accountName": "Rent", "debit": 4000, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 4000 }] },
+        { "id": "je-008", "date": "2025-02-10", "description": "Jual kredit", "lines": [{ "accountCode": "1100", "accountName": "Trade Receivables", "debit": 70000, "credit": 0 }, { "accountCode": "4000", "accountName": "Sales — Credit", "debit": 0, "credit": 70000 }] },
+        { "id": "je-009", "date": "2025-12-31", "description": "Closing inventory", "lines": [{ "accountCode": "1200", "accountName": "Inventory", "debit": 10000, "credit": 0 }, { "accountCode": "5020", "accountName": "Closing Inventory", "debit": 0, "credit": 10000 }] },
+        { "id": "je-010", "date": "2025-12-31", "description": "Zakat Perniagaan", "lines": [{ "accountCode": "6905", "accountName": "Zakat Perniagaan (Business Zakat)", "debit": 2500, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 2500 }] }
+      ]
+    },
+    {
+      "clientId": "enterprise-003",
+      "name": "Cekap Enterprise",
+      "code": "CEKAP-001",
+      "type": "enterprise",
+      "taxRate": 0,
+      "yearEnd": 2025,
+      "journalEntries": [
+        { "id": "je-001", "date": "2025-01-01", "description": "Modal awal", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 95000, "credit": 0 }, { "accountCode": "3000", "accountName": "Share Capital", "debit": 0, "credit": 95000 }] },
+        { "id": "je-002", "date": "2025-01-05", "description": "Jual cash", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 60000, "credit": 0 }, { "accountCode": "4000", "accountName": "Sales — Cash", "debit": 0, "credit": 60000 }] },
+        { "id": "je-003", "date": "2025-01-10", "description": "Beli inventory", "lines": [{ "accountCode": "5010", "accountName": "Purchases", "debit": 28000, "credit": 0 }, { "accountCode": "2000", "accountName": "Trade Payables", "debit": 0, "credit": 28000 }] },
+        { "id": "je-004", "date": "2025-01-15", "description": "Beli motor", "lines": [{ "accountCode": "1510", "accountName": "Motor Vehicles", "debit": 80000, "credit": 0 }, { "accountCode": "2200", "accountName": "Long-term Loan", "debit": 0, "credit": 80000 }] },
+        { "id": "je-005", "date": "2025-01-20", "description": "Gaji & EPF", "lines": [{ "accountCode": "6000", "accountName": "Salary & Wages", "debit": 14000, "credit": 0 }, { "accountCode": "6010", "accountName": "EPF Contribution", "debit": 1400, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 15400 }] },
+        { "id": "je-006", "date": "2025-01-25", "description": "Depreciation", "lines": [{ "accountCode": "6300", "accountName": "Depreciation", "debit": 800, "credit": 0 }, { "accountCode": "1550", "accountName": "Accumulated Depreciation — Motor", "debit": 0, "credit": 800 }] },
+        { "id": "je-007", "date": "2025-01-30", "description": "Bayar sewa", "lines": [{ "accountCode": "6100", "accountName": "Rent", "debit": 4500, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 4500 }] },
+        { "id": "je-008", "date": "2025-02-05", "description": "Jual kredit", "lines": [{ "accountCode": "1100", "accountName": "Trade Receivables", "debit": 95000, "credit": 0 }, { "accountCode": "4000", "accountName": "Sales — Credit", "debit": 0, "credit": 95000 }] },
+        { "id": "je-009", "date": "2025-12-31", "description": "Closing inventory", "lines": [{ "accountCode": "1200", "accountName": "Inventory", "debit": 11000, "credit": 0 }, { "accountCode": "5020", "accountName": "Closing Inventory", "debit": 0, "credit": 11000 }] },
+        { "id": "je-010", "date": "2025-12-31", "description": "Zakat Perniagaan", "lines": [{ "accountCode": "6905", "accountName": "Zakat Perniagaan (Business Zakat)", "debit": 3200, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 3200 }] }
+      ]
+    }
+  ]
+}

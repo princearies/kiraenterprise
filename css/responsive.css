@@ -1,0 +1,36 @@
+/**
+ * Kira Enterprise V4 — Responsive Styles (clean, all comments properly closed)
+ */
+
+/* Mobile / small screens */
+@media (max-width: 768px) {
+  .container { padding: 12px; max-width: 100%; }
+  header h1 { font-size: 22px; }
+  .card { padding: 16px; border-radius: 8px; }
+  .tab-nav { gap: 6px; }
+  .tab-btn { padding: 6px 12px; font-size: 13px; }
+  table { font-size: 12px; }
+  table th, table td { padding: 6px 4px; }
+  form input, form select { max-width: 100%; }
+  /* Stack report sections */
+  section { margin-bottom: 16px; }
+}
+
+/* Very small phones */
+@media (max-width: 480px) {
+  .container { padding: 8px; }
+  header h1 { font-size: 18px; }
+  .tab-btn { width: 100%; margin-bottom: 4px; text-align: center; }
+  .card { padding: 12px; }
+  /* Allow horizontal scroll for wide tables */
+  .table-scroll { overflow-x: auto; display: block; }
+  table { min-width: 560px; }
+  /* Font adjustments */
+  body { font-size: 14px; }
+}
+
+/* Tablet adjustments */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .container { padding: 20px; max-width: 960px; }
+  table { font-size: 13px; }
+}

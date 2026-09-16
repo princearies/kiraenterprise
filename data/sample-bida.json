@@ -1,0 +1,82 @@
+{
+  "clients": [
+    { "id": "bida-001", "name": "Bida Enterprise", "code": "BIDA", "taxRate": 24, "year": 2025 },
+    { "id": "lawa-001", "name": "Lawa Enterprise", "code": "LAWA", "taxRate": 24, "year": 2025 }
+  ],
+  "journalEntries": {
+    "bida-001": [
+      {
+        "clientId": "bida-001",
+        "id": "je-bida-001",
+        "date": "2025-01-01",
+        "description": "Initial capital",
+        "lines": [
+          { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 50000, "credit": 0 },
+          { "accountCode": "3000", "accountName": "Share Capital", "debit": 0, "credit": 50000 }
+        ]
+      },
+      {
+        "clientId": "bida-001",
+        "id": "je-bida-002",
+        "date": "2025-01-02",
+        "description": "Purchase goods on credit",
+        "lines": [
+          { "accountCode": "5010", "accountName": "Purchases", "debit": 15000, "credit": 0 },
+          { "accountCode": "2000", "accountName": "Trade Payables", "debit": 0, "credit": 15000 }
+        ]
+      },
+      {
+        "clientId": "bida-001",
+        "id": "je-bida-003",
+        "date": "2025-01-05",
+        "description": "Sales",
+        "lines": [
+          { "accountCode": "1100", "accountName": "Trade Receivables", "debit": 25000, "credit": 0 },
+          { "accountCode": "4000", "accountName": "Sales Revenue", "debit": 0, "credit": 25000 }
+        ]
+      },
+      {
+        "clientId": "bida-001",
+        "id": "je-bida-004",
+        "date": "2025-01-10",
+        "description": "Closing inventory",
+        "lines": [
+          { "accountCode": "1200", "accountName": "Inventory", "debit": 8000, "credit": 0 },
+          { "accountCode": "5020", "accountName": "Closing Inventory", "debit": 0, "credit": 8000 }
+        ]
+      }
+    ],
+    "lawa-001": [
+      {
+        "clientId": "lawa-001",
+        "id": "je-lawa-001",
+        "date": "2025-03-01",
+        "description": "Initial capital",
+        "lines": [
+          { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 80000, "credit": 0 },
+          { "accountCode": "3000", "accountName": "Share Capital", "debit": 0, "credit": 80000 }
+        ]
+      },
+      {
+        "clientId": "lawa-001",
+        "id": "je-lawa-002",
+        "date": "2025-03-05",
+        "description": "Purchase goods",
+        "lines": [
+          { "accountCode": "5010", "accountName": "Purchases", "debit": 20000, "credit": 0 },
+          { "accountCode": "2000", "accountName": "Trade Payables", "debit": 0, "credit": 20000 }
+        ]
+      },
+      {
+        "clientId": "lawa-001",
+        "id": "je-lawa-003",
+        "date": "2025-03-08",
+        "description": "Closing inventory",
+        "lines": [
+          { "accountCode": "1200", "accountName": "Inventory", "debit": 12000, "credit": 0 },
+          { "accountCode": "5020", "accountName": "Closing Inventory", "debit": 0, "credit": 12000 }
+        ]
+      }
+    ]
+  }
+}

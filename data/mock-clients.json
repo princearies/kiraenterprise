@@ -1,0 +1,83 @@
+{
+  "clients": [
+    {
+      "clientId": "bida-001",
+      "name": "Bida Enterprise",
+      "code": "BIDA",
+      "type": "Sdn Bhd Normal",
+      "taxRate": 24,
+      "yearEnd": 2025,
+      "journalEntries": [
+        { "clientId": "bida-001", "id": "je-bida-001", "date": "2025-01-02", "description": "Share Capital", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 50000, "credit": 0 }, { "accountCode": "3000", "accountName": "Share Capital", "debit": 0, "credit": 50000 }] },
+        { "clientId": "bida-001", "id": "je-bida-002", "date": "2025-01-05", "description": "Cash Sales", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 30000, "credit": 0 }, { "accountCode": "4002", "accountName": "Cash Sales", "debit": 0, "credit": 30000 }] },
+        { "clientId": "bida-001", "id": "je-bida-003", "date": "2025-01-10", "description": "Credit Sales", "lines": [{ "accountCode": "1100", "accountName": "Trade Receivables", "debit": 25000, "credit": 0 }, { "accountCode": "4001", "accountName": "Credit Sales", "debit": 0, "credit": 25000 }] },
+        { "clientId": "bida-001", "id": "je-bida-004", "date": "2025-01-15", "description": "Buy Inventory", "lines": [{ "accountCode": "5010", "accountName": "Purchases", "debit": 15000, "credit": 0 }, { "accountCode": "2000", "accountName": "Trade Payables", "debit": 0, "credit": 15000 }] },
+        { "clientId": "bida-001", "id": "je-bida-005", "date": "2025-01-20", "description": "Buy Motor Vehicle", "lines": [{ "accountCode": "1510", "accountName": "Motor Vehicles", "debit": 45000, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 45000 }] },
+        { "clientId": "bida-001", "id": "je-bida-006", "date": "2025-01-25", "description": "Depreciation", "lines": [{ "accountCode": "6300", "accountName": "Depreciation", "debit": 4500, "credit": 0 }, { "accountCode": "1540", "accountName": "Accumulated Depreciation — PPE", "debit": 0, "credit": 4500 }] },
+        { "clientId": "bida-001", "id": "je-bida-010", "date": "2025-12-31", "description": "Closing Inventory", "lines": [{ "accountCode": "1200", "accountName": "Inventory", "debit": 8000, "credit": 0 }, { "accountCode": "5020", "accountName": "Closing Inventory", "debit": 0, "credit": 8000 }] }
+      ]
+    },
+    {
+      "clientId": "lawa-001",
+      "name": "Lawa Enterprise",
+      "code": "LAWA",
+      "type": "Enterprise / Sole Prop",
+      "taxRate": 24,
+      "yearEnd": 2025,
+      "journalEntries": [
+        { "clientId": "lawa-001", "id": "je-lawa-001", "date": "2025-03-01", "description": "Capital", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 80000, "credit": 0 }, { "accountCode": "3000", "accountName": "Share Capital", "debit": 0, "credit": 80000 }] },
+        { "clientId": "lawa-001", "id": "je-lawa-002", "date": "2025-03-05", "description": "Cash Sales", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 40000, "credit": 0 }, { "accountCode": "4002", "accountName": "Cash Sales", "debit": 0, "credit": 40000 }] },
+        { "clientId": "lawa-001", "id": "je-lawa-003", "date": "2025-03-10", "description": "Buy Inventory", "lines": [{ "accountCode": "5010", "accountName": "Purchases", "debit": 20000, "credit": 0 }, { "accountCode": "2000", "accountName": "Trade Payables", "debit": 0, "credit": 20000 }] },
+        { "clientId": "lawa-001", "id": "je-lawa-004", "date": "2025-03-15", "description": "Pay Rent", "lines": [{ "accountCode": "6100", "accountName": "Rent", "debit": 12000, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 12000 }] },
+        { "clientId": "lawa-001", "id": "je-lawa-005", "date": "2025-03-20", "description": "Salary + EPF + SOCSO", "lines": [{ "accountCode": "6000", "accountName": "Salary & Wages", "debit": 8000, "credit": 0 }, { "accountCode": "6010", "accountName": "EPF Contribution", "debit": 800, "credit": 0 }, { "accountCode": "6020", "accountName": "SOCSO Contribution", "debit": 160, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 8960 }] },
+        { "clientId": "lawa-001", "id": "je-lawa-010", "date": "2025-12-31", "description": "Closing Inventory", "lines": [{ "accountCode": "1200", "accountName": "Inventory", "debit": 12000, "credit": 0 }, { "accountCode": "5020", "accountName": "Closing Inventory", "debit": 0, "credit": 12000 }] }
+      ]
+    },
+    {
+      "clientId": "maju-001",
+      "name": "Maju Enterprise",
+      "code": "MAJU",
+      "type": "LLP (24%)",
+      "taxRate": 24,
+      "yearEnd": 2025,
+      "journalEntries": [
+        { "clientId": "maju-001", "id": "je-maju-001", "date": "2025-04-01", "description": "Service Revenue", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 60000, "credit": 0 }, { "accountCode": "4003", "accountName": "Service Revenue", "debit": 0, "credit": 60000 }] },
+        { "clientId": "maju-001", "id": "je-maju-002", "date": "2025-04-10", "description": "Buy Computer", "lines": [{ "accountCode": "1535", "accountName": "Computer & IT", "debit": 12000, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 12000 }] },
+        { "clientId": "maju-001", "id": "je-maju-003", "date": "2025-04-15", "description": "Audit Fee", "lines": [{ "accountCode": "6170", "accountName": "Audit Fee", "debit": 3500, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 3500 }] },
+        { "clientId": "maju-001", "id": "je-maju-004", "date": "2025-04-20", "description": "Zakat Perniagaan", "lines": [{ "accountCode": "6905", "accountName": "Zakat Perniagaan (Business Zakat)", "debit": 2000, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 2000 }] }
+      ]
+    },
+    {
+      "clientId": "cekap-001",
+      "name": "Cekap Enterprise",
+      "code": "CEKAP",
+      "type": "Sdn Bhd Small",
+      "taxRate": 15,
+      "yearEnd": 2025,
+      "journalEntries": [
+        { "clientId": "cekap-001", "id": "je-cekap-001", "date": "2025-05-01", "description": "Capital", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 100000, "credit": 0 }, { "accountCode": "3000", "accountName": "Share Capital", "debit": 0, "credit": 100000 }] },
+        { "clientId": "cekap-001", "id": "je-cekap-002", "date": "2025-05-05", "description": "Sales", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 80000, "credit": 0 }, { "accountCode": "4002", "accountName": "Cash Sales", "debit": 0, "credit": 80000 }] },
+        { "clientId": "cekap-001", "id": "je-cekap-003", "date": "2025-05-10", "description": "Buy Inventory", "lines": [{ "accountCode": "5010", "accountName": "Purchases", "debit": 30000, "credit": 0 }, { "accountCode": "2000", "accountName": "Trade Payables", "debit": 0, "credit": 30000 }] },
+        { "clientId": "cekap-001", "id": "je-cekap-004", "date": "2025-05-12", "description": "EIS Payroll Deductions (SIP)", "lines": [{ "accountCode": "6025", "accountName": "EIS Contribution (SIP)", "debit": 1200, "credit": 0 }, { "accountCode": "2075", "accountName": "EIS Payable (SIP)", "debit": 0, "credit": 1200 }] },
+        { "clientId": "cekap-001", "id": "je-cekap-005", "date": "2025-05-14", "description": "HRDF Payroll Deductions (PSMB)", "lines": [{ "accountCode": "6035", "accountName": "HRDF Contribution (PSMB)", "debit": 600, "credit": 0 }, { "accountCode": "2085", "accountName": "HRDF Payable (PSMB)", "debit": 0, "credit": 600 }] },
+        { "clientId": "cekap-001", "id": "je-cekap-006", "date": "2025-05-20", "description": "Sales Tax Service (6%)", "lines": [{ "accountCode": "2095", "accountName": "SST Payable (6%)", "debit": 0, "credit": 4800 }, { "accountCode": "4002", "accountName": "Cash Sales", "debit": 4800, "credit": 0 }] },
+        { "clientId": "cekap-001", "id": "je-cekap-010", "date": "2025-12-31", "description": "Closing Inventory", "lines": [{ "accountCode": "1200", "accountName": "Inventory", "debit": 15000, "credit": 0 }, { "accountCode": "5020", "accountName": "Closing Inventory", "debit": 0, "credit": 15000 }] }
+      ]
+    },
+    {
+      "clientId": "rugi-001",
+      "name": "Rugi Enterprise",
+      "code": "RUGI",
+      "type": "Sdn Bhd Normal",
+      "taxRate": 24,
+      "yearEnd": 2025,
+      "journalEntries": [
+        { "clientId": "rugi-001", "id": "je-rugi-001", "date": "2025-06-01", "description": "Capital", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 30000, "credit": 0 }, { "accountCode": "3000", "accountName": "Share Capital", "debit": 0, "credit": 30000 }] },
+        { "clientId": "rugi-001", "id": "je-rugi-002", "date": "2025-06-05", "description": "Sales", "lines": [{ "accountCode": "1000", "accountName": "Cash at Bank", "debit": 12000, "credit": 0 }, { "accountCode": "4002", "accountName": "Cash Sales", "debit": 0, "credit": 12000 }] },
+        { "clientId": "rugi-001", "id": "je-rugi-003", "date": "2025-06-10", "description": "Heavy Marketing", "lines": [{ "accountCode": "6210", "accountName": "Entertainment", "debit": 25000, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 25000 }] },
+        { "clientId": "rugi-001", "id": "je-rugi-004", "date": "2025-06-15", "description": "High Rent", "lines": [{ "accountCode": "6100", "accountName": "Rent", "debit": 18000, "credit": 0 }, { "accountCode": "1000", "accountName": "Cash at Bank", "debit": 0, "credit": 18000 }] },
+        { "clientId": "rugi-001", "id": "je-rugi-010", "date": "2025-12-31", "description": "Closing Inventory", "lines": [{ "accountCode": "1200", "accountName": "Inventory", "debit": 5000, "credit": 0 }, { "accountCode": "5020", "accountName": "Closing Inventory", "debit": 0, "credit": 5000 }] }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+@media print {
+  /* Hide navigation and buttons */
+  .tab-buttons,
+  .tab-nav,
+  .tab-btn,
+  .company-selector,
+  .btn-export-pdf,
+  #btn-export-pdf,
+  .btn-add-company,
+  .btn-save-company,
+  .no-print,
+  .balanced,
+  [data-html2canvas-ignore="true"],
+  #toast {
+    display: none !important;
+  }
+
+  /* Hide client ID line */
+  .client-id,
+  [class*="client"] {
+    display: none !important;
+  }
+
+  /* White background for printing */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+  }
+
+  /* Improve text contrast */
+  body {
+    background: white !important;
+    color: #000000 !important; /* Pure black text */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Ensure all text is dark and clear */
+  h2, h3, h4, p, span, div, table, th, td {
+    color: #000000 !important;
+    background: transparent !important;
+  }
+
+  /* Ensure tables print properly */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    page-break-inside: auto;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  /* Report header styling */
+  .report-header {
+    background: white !important;
+    color: black !important;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .report-header h2,
+  .report-header h3 {
+    color: black !important;
+  }
+
+  /* Table styling */
+  th, td {
+    border: 1px solid #ddd !important;
+    padding: 8px;
+  }
+
+  /* Make table headers bold and clear */
+  th {
+    background: #e0e0e0 !important; /* Light gray background */
+    color: #000000 !important;
+    font-weight: bold !important;
+    border: 1px solid #333 !important;
+  }
+
+  /* Ensure table borders are visible */
+  td {
+    border: 1px solid #666 !important;
+    color: #000000 !important;
+  }
+
+  /* Alternating row colors */
+  tr:nth-child(even) {
+    background: #fafafa !important;
+  }
+
+  /* Make totals bold */
+  .total, .grand-total, [class*="total"] {
+    font-weight: bold !important;
+    border-top: 2px solid #000 !important;
+  }
+
+  /* Only show the active report panel when printing */
+  section {
+    display: none !important;
+  }
+  section[style*="block"] {
+    display: block !important;
+  }
+}

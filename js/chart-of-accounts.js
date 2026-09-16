@@ -1,0 +1,50 @@
+/**
+ * Kira Enterprise V4 — Chart of Accounts (MFRS / MPERS)
+ * Valid JavaScript: assignable to window.ChartOfAccounts
+ */
+window.ChartOfAccounts = {
+  source: "Kira Enterprise V4 — Default Chart of Accounts",
+  standard: "MFRS / MPERS",
+  accounts: [
+    { code: "1000", name: "Cash at Bank", kategori: "asset", sub: "current_asset", normalBalance: "debit" },
+    { code: "1010", name: "Petty Cash", kategori: "asset", sub: "current_asset", normalBalance: "debit" },
+    { code: "1020", name: "Cash in Hand", kategori: "asset", sub: "current_asset", normalBalance: "debit" },
+    { code: "1100", name: "Trade Receivables", kategori: "asset", sub: "current_asset", normalBalance: "debit" },
+    { code: "1200", name: "Inventory", kategori: "asset", sub: "current_asset", normalBalance: "debit" },
+    { code: "1300", name: "Prepaid Expenses", kategori: "asset", sub: "current_asset", normalBalance: "debit" },
+    { code: "1400", name: "Fixed Deposits", kategori: "asset", sub: "current_asset", normalBalance: "debit" },
+    { code: "1510", name: "Motor Vehicles", kategori: "asset", sub: "non_current_asset", normalBalance: "debit", taxTreatment: "addback" },
+    { code: "1520", name: "Furniture & Fittings", kategori: "asset", sub: "non_current_asset", normalBalance: "debit", taxTreatment: "addback" },
+    { code: "1530", name: "Office Equipment", kategori: "asset", sub: "non_current_asset", normalBalance: "debit", taxTreatment: "addback" },
+    { code: "1535", name: "Computer & IT", kategori: "asset", sub: "non_current_asset", normalBalance: "debit", taxTreatment: "addback" },
+    { code: "1540", name: "Accumulated Depreciation \u2014 PPE", kategori: "asset", sub: "non_current_asset", normalBalance: "credit" },
+    { code: "1550", name: "Accumulated Depreciation \u2014 Motor", kategori: "asset", sub: "non_current_asset", normalBalance: "credit" },
+    { code: "2000", name: "Trade Payables", kategori: "liability", sub: "current_liability", normalBalance: "credit" },
+    { code: "2075", name: "EIS Payable (SIP)", kategori: "liability", sub: "current_liability", normalBalance: "credit" },
+    { code: "2085", name: "HRDF Payable (PSMB)", kategori: "liability", sub: "current_liability", normalBalance: "credit" },
+    { code: "2095", name: "SST Payable (6%)", kategori: "liability", sub: "current_liability", normalBalance: "credit" },
+    { code: "2096", name: "SST Payable (8%)", kategori: "liability", sub: "current_liability", normalBalance: "credit" },
+    { code: "2100", name: "Zakat Perniagaan Payable (Zakat Sabah/MUIS)", kategori: "liability", sub: "current_liability", normalBalance: "credit" },
+    { code: "3000", name: "Share Capital", kategori: "equity", sub: "equity", normalBalance: "credit" },
+    { code: "5000", name: "Opening Inventory", kategori: "cost_of_sales", sub: "cost_of_sales", normalBalance: "debit" },
+    { code: "5010", name: "Purchases", kategori: "cost_of_sales", sub: "cost_of_sales", normalBalance: "debit" },
+    { code: "5020", name: "Closing Inventory", kategori: "cost_of_sales", sub: "cost_of_sales", normalBalance: "credit" },
+    { code: "6000", name: "Salary & Wages", kategori: "operating_expenses", sub: "admin_expenses", normalBalance: "debit", taxTreatment: "allowable" },
+    { code: "6100", name: "Rent", kategori: "operating_expenses", sub: "admin_expenses", normalBalance: "debit", taxTreatment: "allowable" },
+    { code: "6130", name: "Insurance", kategori: "operating_expenses", sub: "admin_expenses", normalBalance: "debit", taxTreatment: "allowable" },
+    { code: "6160", name: "Professional Fees", kategori: "operating_expenses", sub: "admin_expenses", normalBalance: "debit", taxTreatment: "allowable" },
+    { code: "6170", name: "Audit Fee", kategori: "operating_expenses", sub: "admin_expenses", normalBalance: "debit", taxTreatment: "allowable" },
+    { code: "6210", name: "Entertainment", kategori: "operating_expenses", sub: "selling_expenses", normalBalance: "debit", taxTreatment: "50%" },
+    { code: "6220", name: "Bank Charges", kategori: "operating_expenses", sub: "finance_cost", normalBalance: "debit", taxTreatment: "allowable" },
+    { code: "6230", name: "Interest Expense", kategori: "operating_expenses", sub: "finance_cost", normalBalance: "debit", taxTreatment: "allowable" },
+    { code: "6300", name: "Depreciation", kategori: "operating_expenses", sub: "depreciation", normalBalance: "debit", taxTreatment: "addback" },
+    { code: "6901", name: "Fines & Penalties", kategori: "operating_expenses", sub: "other_expenses", normalBalance: "debit", taxTreatment: "addback" },
+    { code: "6902", name: "Private Expenses", kategori: "operating_expenses", sub: "other_expenses", normalBalance: "debit", taxTreatment: "addback" },
+    { code: "6903", name: "Donations (non-approved)", kategori: "operating_expenses", sub: "other_expenses", normalBalance: "debit", taxTreatment: "addback" },
+    { code: "6025", name: "EIS Contribution (SIP)", kategori: "operating_expenses", sub: "admin_expenses", normalBalance: "debit", taxTreatment: "allowable" },
+    { code: "6035", name: "HRDF Contribution (PSMB)", kategori: "operating_expenses", sub: "admin_expenses", normalBalance: "debit", taxTreatment: "allowable" },
+    { code: "6904", name: "Provision for Doubtful Debts", kategori: "operating_expenses", sub: "other_expenses", normalBalance: "debit", taxTreatment: "addback" },
+    { code: "6905", name: "Zakat Perniagaan (Business Zakat)", kategori: "tax", sub: "tax_expense", normalBalance: "debit" },
+    { code: "7000", name: "Income Tax Expense", kategori: "tax", sub: "tax_expense", normalBalance: "debit" }
+  ]
+};
