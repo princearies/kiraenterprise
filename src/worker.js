@@ -16,12 +16,14 @@ export default {
       try {
         const body = await request.json();
         const { clientId, entries, companyMeta } = body;
+
         if (!clientId) {
           return new Response(JSON.stringify({ success: false, error: "Missing clientId" }), {
             status: 400,
             headers: { ...corsHeaders, "Content-Type": "application/json" }
           });
         }
+
         await env.DB.prepare(
           `INSERT INTO client_entries (client_id, entries_json, company_meta, updated_at) 
            VALUES (?, ?, ?, CURRENT_TIMESTAMP)
@@ -30,6 +32,7 @@ export default {
              company_meta = excluded.company_meta,
              updated_at = CURRENT_TIMESTAMP`
         ).bind(clientId, JSON.stringify(entries || []), JSON.stringify(companyMeta || {})).run();
+
         return new Response(JSON.stringify({ success: true }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
@@ -41,7 +44,7 @@ export default {
       }
     }
 
-    // 2. API: Muat Data Jurnal dari D1
+    // 2. API: Muat Data dari D1
     if (url.pathname === "/api/load" && request.method === "GET") {
       try {
         const clientId = url.searchParams.get("clientId");
@@ -51,14 +54,17 @@ export default {
             headers: { ...corsHeaders, "Content-Type": "application/json" }
           });
         }
+
         const row = await env.DB.prepare(
           "SELECT entries_json, company_meta FROM client_entries WHERE client_id = ?"
         ).bind(clientId).first();
+
         if (!row) {
           return new Response(JSON.stringify({ success: true, entries: [], companyMeta: null }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" }
           });
         }
+
         return new Response(JSON.stringify({
           success: true,
           entries: JSON.parse(row.entries_json || "[]"),
@@ -74,12 +80,13 @@ export default {
       }
     }
 
-    // 3. API: Senarai Semua Syarikat (Load dari client_entries, BUKAN table companies!)
+    // 3. API: Senarai Semua Syarikat (Mengambil terus dari D1)
     if (url.pathname === "/api/companies" && request.method === "GET") {
       try {
         const rows = await env.DB.prepare(
           "SELECT client_id, company_meta FROM client_entries"
         ).all();
+
         const companies = (rows.results || []).map(row => {
           const meta = JSON.parse(row.company_meta || "{}");
           return {
@@ -87,10 +94,10 @@ export default {
             name: meta.name || row.client_id,
             type: meta.type || "sdn_bhd_normal",
             taxRate: meta.taxRate || 24,
-            yearEnd: meta.yearEnd || new Date().getFullYear(),
-            code: meta.code || row.client_id.toUpperCase()
+            code: meta.code || row.client_id
           };
         });
+
         return new Response(JSON.stringify({ success: true, companies: companies }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
