@@ -1,6 +1,5 @@
 /**
  * Kira Enterprise V4 — Multi-Client Accounting System (Main App Controller)
- * Data flow: mock-data-v4.json → Storage (D1 via /api/load) → Ledger → Reports.
  */
 (function (global) {
   'use strict';
@@ -11,11 +10,15 @@
   var companiesCache = [];
 
   function showToast(msg) {
-    var t = document.getElementById('toast');
-    if (!t) return;
-    t.textContent = msg;
-    t.style.display = 'block';
-    setTimeout(function () { t.style.display = 'none'; }, 3000);
+    if (global.Utils && global.Utils.showToast) {
+      global.Utils.showToast(msg);
+    } else {
+      var t = document.getElementById('toast');
+      if (!t) return;
+      t.textContent = msg;
+      t.style.display = 'block';
+      setTimeout(function () { t.style.display = 'none'; }, 3000);
+    }
   }
 
   function initApp() {
@@ -50,8 +53,6 @@
       .catch(function (err) {
         console.error('CRITICAL: Failed to load mock-data-v4.json.', err);
         showToast('⚠ Failed to load data.');
-        var sel = document.getElementById('company-select');
-        if (sel) sel.innerHTML = '<option value="">⚠ Failed to load data.</option>';
       });
   }
 
@@ -85,7 +86,6 @@
     if (taxInput) taxInput.value = (typeof company.taxRate === 'number') ? company.taxRate : 24;
     currentCompany.taxRate = (typeof company.taxRate === 'number') ? company.taxRate : 24;
 
-    // Lazy-seed mock data ke localStorage jika belum ada
     if (global.Storage && global.Storage.save && company.clientId && company.journalEntries) {
       var seededKey = 'kiraV4_seeded_' + company.clientId;
       var alreadySeeded = false;
@@ -174,75 +174,43 @@
     if (!lines.length) { showToast('Tiada baris jurnal!'); return; }
     if (Math.abs(totalDebit - totalCredit) > 0.01) { showToast('Debit ≠ Credit!'); return; }
 
-    // Baca dari D1 dahulu (supaya tidak overwrite data user lain)
-    if (global.Storage && global.Storage.getJournalEntries) {
-      global.Storage.getJournalEntries(clientId).then(function (existingEntries) {
-        var entries = existingEntries || [];
-        if (window._editingEntryId) {
-          var idx = entries.findIndex(function (e) { return e.id === window._editingEntryId; });
-          if (idx < 0) { showToast(' Entry not found'); return; }
-          entries[idx] = {
-            clientId: clientId,
-            id: window._editingEntryId,
-            date: date,
-            description: desc.trim(),
-            lines: lines
-          };
-        } else {
-          var entry = {
-            clientId: clientId,
-            id: 'je-' + clientId + '-' + Date.now().toString(),
-            date: date,
-            description: desc.trim(),
-            lines: lines
-          };
-          entries.push(entry);
-        }
-        // Simpan ke D1 via Storage
-        if (global.Storage && global.Storage.saveUserCompanyEntries) {
-          global.Storage.saveUserCompanyEntries(clientId, entries).then(function () {
-            window._editingEntryId = null;
-            var d = document.getElementById('j-date'); if (d) d.value = '';
-            var ds = document.getElementById('j-desc'); if (ds) ds.value = '';
-            var lc = document.getElementById('entry-lines'); if (lc) lc.innerHTML = '';
-            refreshJournalList();
-            recalcAll();
-            showToast('✓ Entry disimpan ke D1');
-          }).catch(function (err) {
-            console.error('Save error:', err);
-            showToast('✗ Gagal simpan ke D1');
-          });
-        } else {
-          // Fallback ke localStorage
-          localStorage.setItem('kiraV4_entries_' + clientId, JSON.stringify(entries));
-          window._editingEntryId = null;
-          var d = document.getElementById('j-date'); if (d) d.value = '';
-          var ds = document.getElementById('j-desc'); if (ds) ds.value = '';
-          var lc = document.getElementById('entry-lines'); if (lc) lc.innerHTML = '';
-          refreshJournalList();
-          recalcAll();
-          showToast('✓ Entry disimpan (localStorage)');
-        }
-      });
+    var entries = JSON.parse(localStorage.getItem('kiraV4_entries_' + clientId) || '[]');
+
+    if (window._editingEntryId) {
+      var idx = entries.findIndex(function (e) { return e.id === window._editingEntryId; });
+      if (idx < 0) { showToast('⚠ Entry not found'); return; }
+      entries[idx] = {
+        clientId: clientId,
+        id: window._editingEntryId,
+        date: date,
+        description: desc.trim(),
+        lines: lines
+      };
     } else {
-      // Fallback jika Storage module tiada
-      var entries = JSON.parse(localStorage.getItem('kiraV4_entries_' + clientId) || '[]');
-      if (window._editingEntryId) {
-        var idx = entries.findIndex(function (e) { return e.id === window._editingEntryId; });
-        if (idx < 0) { showToast('⚠ Entry not found'); return; }
-        entries[idx] = { clientId: clientId, id: window._editingEntryId, date: date, description: desc.trim(), lines: lines };
-      } else {
-        entries.push({ clientId: clientId, id: 'je-' + clientId + '-' + Date.now().toString(), date: date, description: desc.trim(), lines: lines });
-      }
-      localStorage.setItem('kiraV4_entries_' + clientId, JSON.stringify(entries));
-      window._editingEntryId = null;
-      var d = document.getElementById('j-date'); if (d) d.value = '';
-      var ds = document.getElementById('j-desc'); if (ds) ds.value = '';
-      var lc = document.getElementById('entry-lines'); if (lc) lc.innerHTML = '';
-      refreshJournalList();
-      recalcAll();
-      showToast('✓ Entry disimpan');
+      entries.push({
+        clientId: clientId,
+        id: 'je-' + clientId + '-' + Date.now().toString(),
+        date: date,
+        description: desc.trim(),
+        lines: lines
+      });
     }
+
+    try {
+      localStorage.setItem('kiraV4_entries_' + clientId, JSON.stringify(entries));
+    } catch (e) {
+      showToast('✗ Gagal simpan ke localStorage');
+      console.error(e);
+      return;
+    }
+
+    window._editingEntryId = null;
+    var d = document.getElementById('j-date'); if (d) d.value = '';
+    var ds = document.getElementById('j-desc'); if (ds) ds.value = '';
+    var lc = document.getElementById('entry-lines'); if (lc) lc.innerHTML = '';
+    refreshJournalList();
+    recalcAll();
+    showToast('✓ Entry disimpan');
   }
 
   function escapeHtml(text) {
@@ -252,14 +220,12 @@
     return d.innerHTML;
   }
 
-  // ✅ INI FUNGSI PENTING — Load dari D1 via /api/load
   function refreshJournalList() {
     var list = document.getElementById('journal-list');
     if (!list || !currentClientId) return;
     list.innerHTML = '<p>Memuatkan data...</p>';
 
     if (global.Storage && global.Storage.getJournalEntries) {
-      // Call /api/load?clientId=...
       global.Storage.getJournalEntries(currentClientId).then(function (entries) {
         renderJournalListUI(list, entries || []);
       }).catch(function (err) {
@@ -340,15 +306,15 @@
     row.innerHTML = '<select class="line-account">' + buildAccountOptions(accountCode) + '</select>' +
       '<input type="number" class="line-debit" value="' + (debit || 0) + '" step="0.01">' +
       '<input type="number" class="line-credit" value="' + (credit || 0) + '" step="0.01">' +
-      '<button type="button" class="btn-remove-line" onclick="this.parentElement.remove()">✕</button>';
+      '<button type="button" class="btn-remove-line" onclick="this.parentElement.remove()"></button>';
     container.appendChild(row);
   }
 
   function editEntry(entryId) {
-    if (!entryId || !global.Journal || !global.Journal.getEntriesByClient) { showToast('⚠ Entry not found'); return; }
+    if (!entryId || !global.Journal || !global.Journal.getEntriesByClient) { showToast(' Entry not found'); return; }
     global.Journal.getEntriesByClient(currentClientId).then(function (entries) {
       var entry = (entries || []).find(function (e) { return e.id === entryId; });
-      if (!entry) { showToast('⚠ Entry not found'); return; }
+      if (!entry) { showToast(' Entry not found'); return; }
       var d = document.getElementById('j-date'); if (d) d.value = entry.date || '';
       var ds = document.getElementById('j-desc'); if (ds) ds.value = entry.description || '';
       var lc = document.getElementById('entry-lines'); if (lc) lc.innerHTML = '';
@@ -370,7 +336,7 @@
       global.Journal.deleteEntry(currentClientId, entryId);
       refreshJournalList();
       recalcAll();
-      showToast('🗑️ Entry deleted');
+      showToast('️ Entry deleted');
     } else {
       showToast('Delete function not available');
     }
@@ -503,11 +469,23 @@
     else if (name === 'tax') renderTaxTab();
   }
 
+  // ✅ FIX #3: updateTaxRate LENGKAP
   function updateTaxRate() {
     var s = document.getElementById('companyType');
-    var rate = s ? ((s.value === 'sdn_bhd_small') ? 15 : (s.value === 'enterprise') ? 0 : 24) : 24;
+    if (!s) return;
+    var val = s.value;
+    var rate = 24;
+    if (val === 'sdn_bhd_small') rate = 15;
+    else if (val === 'enterprise') rate = 0;
+    else if (val === 'llp') rate = 24;
+    else if (val === 'sdn_bhd_normal') rate = 24;
     var inEl = document.getElementById('tax-rate');
     if (inEl) inEl.value = rate;
+    // Update current company tax rate juga
+    if (currentCompany) {
+      currentCompany.taxRate = rate;
+      currentCompany.type = val;
+    }
   }
 
   function addNewCompany() {
@@ -546,6 +524,57 @@
     showToast('✓ Added: ' + n.trim());
   }
 
+  // ✅ FIX #4: editCompany LENGKAP
+  function editCompany(companyId) {
+    if (!companyId) { showToast('Pilih company dahulu'); return; }
+    var company = companiesCache.find(function (c) { return c.clientId === companyId || c.id === companyId; });
+    if (!company) { showToast('Company tidak ditemukan'); return; }
+
+    var newName = prompt('Nama company (kosong = tak ubah):', company.name);
+    if (newName === null) return;
+    if (newName && newName.trim()) company.name = newName.trim();
+
+    var newType = prompt('Type (sdn_bhd_small / sdn_bhd_normal / enterprise / llp) — kosong = tak ubah:', company.type);
+    if (newType === null) return;
+    if (newType && newType.trim()) {
+      var validTypes = ['sdn_bhd_small', 'sdn_bhd_normal', 'enterprise', 'llp'];
+      if (validTypes.indexOf(newType.trim()) >= 0) company.type = newType.trim();
+      else { showToast('Type tidak sah'); return; }
+    }
+
+    var defaultRate = (company.type === 'sdn_bhd_small') ? 15 : (company.type === 'enterprise') ? 0 : 24;
+    var newRateStr = prompt('Tax rate % (kosong = tak ubah, default ' + (company.taxRate || defaultRate) + '):', company.taxRate || defaultRate);
+    if (newRateStr === null) return;
+    if (newRateStr && newRateStr.trim()) {
+      var newRate = parseFloat(newRateStr);
+      if (!isNaN(newRate) && newRate >= 0 && newRate <= 100) company.taxRate = newRate;
+      else { showToast('Tax rate tidak sah'); return; }
+    }
+
+    company.yearEnd = new Date().getFullYear();
+    if (global.Storage && global.Storage.saveClient) global.Storage.saveClient(company);
+
+    var sel = document.getElementById('company-select');
+    if (sel) {
+      Array.from(sel.options).forEach(function (opt) {
+        if (opt.value === company.clientId) {
+          opt.textContent = company.name + ' (' + (company.journalEntries ? company.journalEntries.length : 0) + ' entries)';
+        }
+      });
+    }
+
+    if (currentClientId === company.clientId || currentCompany && currentCompany.clientId === company.clientId) {
+      currentCompany = company;
+      var typeSelect = document.getElementById('companyType');
+      if (typeSelect) typeSelect.value = company.type || 'sdn_bhd_normal';
+      var taxInput = document.getElementById('tax-rate');
+      if (taxInput) taxInput.value = company.taxRate || 24;
+    }
+
+    showToast('✓ Company dikemas kini (code: ' + company.code + ' — tak berubah)');
+    recalcAll();
+  }
+
   function saveCurrentCompany() {
     if (!currentClientId) { showToast('Simpan sebagai company baru dulu'); return; }
     var entriesPromise = global.Journal && global.Journal.getEntriesByClient ? global.Journal.getEntriesByClient(currentClientId) : Promise.resolve([]);
@@ -558,7 +587,7 @@
 
   function exportPdf(elementId, filename) {
     var element = document.getElementById(elementId);
-    if (!element) { showToast(' Panel not found'); return; }
+    if (!element) { showToast('⚠ Panel not found'); return; }
     var clone = element.cloneNode(true);
     var unwanted = clone.querySelectorAll('.client-id, .balanced, .no-print, [data-html2canvas-ignore]');
     for (var i = 0; i < unwanted.length; i++) {
@@ -589,7 +618,7 @@
       html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
-    showToast(' Generating PDF...');
+    showToast('⏳ Generating PDF...');
     html2pdf().set(opt).from(clone).save(filename).then(function() {
       showToast('✓ PDF dijana: ' + filename);
     }).catch(function(err) {
@@ -620,49 +649,6 @@
         showToast('Gagal padam company');
       }
     });
-  }
-
-  function editCompany(companyId) {
-    if (!companyId) { showToast('Pilih company dahulu'); return; }
-    var company = companiesCache.find(function (c) { return c.clientId === companyId || c.id === companyId; });
-    if (!company) { showToast('Company tidak ditemukan'); return; }
-    var newName = prompt('Nama company (kosong = tak ubah):', company.name);
-    if (newName === null) return;
-    if (newName && newName.trim()) company.name = newName.trim();
-    var newType = prompt('Type (sdn_bhd_small / sdn_bhd_normal / enterprise / llp) — kosong = tak ubah:', company.type);
-    if (newType === null) return;
-    if (newType && newType.trim()) {
-      var validTypes = ['sdn_bhd_small', 'sdn_bhd_normal', 'enterprise', 'llp'];
-      if (validTypes.indexOf(newType.trim()) >= 0) company.type = newType.trim();
-      else { showToast('Type tidak sah'); return; }
-    }
-    var defaultRate = (company.type === 'sdn_bhd_small') ? 15 : (company.type === 'enterprise') ? 0 : 24;
-    var newRateStr = prompt('Tax rate % (kosong = tak ubah, default ' + (company.taxRate || defaultRate) + '):', company.taxRate || defaultRate);
-    if (newRateStr === null) return;
-    if (newRateStr && newRateStr.trim()) {
-      var newRate = parseFloat(newRateStr);
-      if (!isNaN(newRate) && newRate >= 0 && newRate <= 100) company.taxRate = newRate;
-      else { showToast('Tax rate tidak sah'); return; }
-    }
-    company.yearEnd = new Date().getFullYear();
-    if (global.Storage && global.Storage.saveClient) global.Storage.saveClient(company);
-    var sel = document.getElementById('company-select');
-    if (sel) {
-      Array.from(sel.options).forEach(function (opt) {
-        if (opt.value === company.clientId) {
-          opt.textContent = company.name + ' (' + (company.journalEntries ? company.journalEntries.length : 0) + ' entries)';
-        }
-      });
-    }
-    if (currentClientId === company.clientId || currentCompany && currentCompany.clientId === company.clientId) {
-      currentCompany = company;
-      var typeSelect = document.getElementById('companyType');
-      if (typeSelect) typeSelect.value = company.type || 'sdn_bhd_normal';
-      var taxInput = document.getElementById('tax-rate');
-      if (taxInput) taxInput.value = company.taxRate || 24;
-    }
-    showToast('✓ Company dikemas kini (code: ' + company.code + ' — tak berubah)');
-    recalcAll();
   }
 
   var App = {
