@@ -53,7 +53,15 @@
     return load(STORAGE_KEYS.COMPANIES, []).then(function (companies) {
       var idx = companies.findIndex(function (c) { return c.clientId === companyId || c.id === companyId; });
       if (idx >= 0) {
-        companies[idx].entries = entries;
+        // Merge: keep existing entries, append new ones (avoid duplicates by id if present)
+        var existing = companies[idx].entries || [];
+        var newEntries = (entries || []).filter(function (e) {
+          // If entry has an id, check for duplicates; if no id, always add
+          if (!e.id) return true;
+          var existingIds = existing.map(function (ex) { return ex.id; });
+          return existingIds.indexOf(e.id) < 0;
+        });
+        companies[idx].entries = existing.concat(newEntries);
         return save(STORAGE_KEYS.COMPANIES, companies);
       }
       return Promise.resolve({ success: false, error: 'Company not found' });
@@ -88,6 +96,22 @@
     return load(STORAGE_KEYS.COMPANIES, []);
   }
 
+  function deleteCompany(companyId) {
+    return load(STORAGE_KEYS.COMPANIES, []).then(function (companies) {
+      var idx = companies.findIndex(function (c) { return c.clientId === companyId || c.id === companyId; });
+      if (idx < 0) return Promise.resolve({ success: false, error: 'Company not found' });
+      var removed = companies.splice(idx, 1)[0];
+      return save(STORAGE_KEYS.COMPANIES, companies).then(function () {
+        // Also delete all journal entries for this company
+        var clientId = removed.clientId;
+        if (clientId) {
+          localStorage.removeItem('kiraV4_entries_' + clientId);
+        }
+        return { success: true, removed: removed };
+      });
+    });
+  }
+
   var Storage = {
     STORAGE_KEYS: STORAGE_KEYS,
     save: save,
@@ -100,6 +124,7 @@
     saveJournalEntry: saveJournalEntry,
     getJournalEntries: getJournalEntries,
     saveClient: saveClient,
+    deleteCompany: deleteCompany,
   };
 
   if (typeof module !== 'undefined' && module.exports) {

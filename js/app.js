@@ -29,20 +29,17 @@
       .then(function (data) {
         if (data && data.companies) {
           companiesCache = data.companies;
-          // 1) Save companies + entries into Storage (Journal/Ledger read from Storage).
-          // IMPORTANT: never wipe manually keyed data — only seed mock entries for
-          // clients that have NO saved entries yet in localStorage.
+          // 1) Save METADATA only — entries are lazy-loaded on demand
           data.companies.forEach(function (company) {
             if (global.Storage && global.Storage.saveClient) {
-              global.Storage.saveClient(company);
-            }
-            var key = 'kiraV4_entries_' + (company.clientId || '');
-            var existing = [];
-            try {
-              existing = JSON.parse(localStorage.getItem(key) || '[]');
-            } catch (e) { existing = []; }
-            if (global.Storage && global.Storage.save && company.clientId && (!existing || existing.length === 0)) {
-              global.Storage.save(key, company.journalEntries || []);
+              global.Storage.saveClient({
+                clientId: company.clientId,
+                name: company.name,
+                code: company.code,
+                type: company.type,
+                taxRate: company.taxRate,
+                yearEnd: company.yearEnd
+              });
             }
           });
           // 2) Populate dropdown
@@ -96,14 +93,19 @@
     if (taxInput) taxInput.value = (typeof company.taxRate === 'number') ? company.taxRate : 24;
     // Propagate company tax rate into currentCompany
     currentCompany.taxRate = (typeof company.taxRate === 'number') ? company.taxRate : 24;
-    // Seed mock entries into Storage ONLY if this client has no saved data yet.
-    // This preserves manually keyed entries across page reloads.
+    // Lazy-load entries on demand — check localStorage only when needed
     if (global.Storage && global.Storage.save && company.clientId && company.journalEntries) {
-      var lsKey = 'kiraV4_entries_' + company.clientId;
-      var existing = [];
-      try { existing = JSON.parse(localStorage.getItem(lsKey) || '[]'); } catch (e) { existing = []; }
-      if (!existing || existing.length === 0) {
-        global.Storage.save(lsKey, company.journalEntries);
+      var seededKey = 'kiraV4_seeded_' + company.clientId;
+      var alreadySeeded = false;
+      try { alreadySeeded = localStorage.getItem(seededKey) === 'true'; } catch (e) { /* ignore */ }
+      if (!alreadySeeded) {
+        var lsKey = 'kiraV4_entries_' + company.clientId;
+        var existing = [];
+        try { existing = JSON.parse(localStorage.getItem(lsKey) || '[]'); } catch (e) { /* ignore */ }
+        if (existing.length === 0) {
+          global.Storage.save(lsKey, company.journalEntries || []);
+          try { localStorage.setItem(seededKey, 'true'); } catch (e) { /* ignore */ }
+        }
       }
     }
     recalcAll();
@@ -265,7 +267,7 @@
   }
 
   // Chart of accounts (static from chart-of-accounts.js)
-  var chartAccounts = [{code:'1000',name:'Cash at Bank'},{code:'1010',name:'Petty Cash'},{code:'1020',name:'Cash in Hand'},{code:'1100',name:'Trade Receivables'},{code:'1200',name:'Inventory'},{code:'1300',name:'Prepaid Expenses'},{code:'1400',name:'Fixed Deposits'},{code:'1510',name:'Motor Vehicles'},{code:'1520',name:'Furniture & Fittings'},{code:'1530',name:'Office Equipment'},{code:'1535',name:'Computer & IT'},{code:'1540',name:'Accumulated Depreciation — PPE'},{code:'1550',name:'Accumulated Depreciation — Motor'},{code:'2000',name:'Trade Payables'},{code:'2075',name:'EIS Payable (SIP)'},{code:'2085',name:'HRDF Payable (PSMB)'},{code:'2095',name:'SST Payable (6%)'},{code:'2096',name:'SST Payable (8%)'},{code:'2100',name:'Zakat Perniagaan Payable'},{code:'3000',name:'Share Capital'},{code:'5000',name:'Opening Inventory'},{code:'5010',name:'Purchases'},{code:'5020',name:'Closing Inventory'},{code:'6000',name:'Salary & Wages'},{code:'6100',name:'Rent'},{code:'6130',name:'Insurance'},{code:'6160',name:'Professional Fees'},{code:'6170',name:'Audit Fee'},{code:'6210',name:'Entertainment'},{code:'6220',name:'Bank Charges'},{code:'6230',name:'Interest Expense'},{code:'6300',name:'Depreciation'},{code:'6901',name:'Fines & Penalties'},{code:'6902',name:'Private Expenses'},{code:'6903',name:'Donations (non-approved)'},{code:'6025',name:'EIS Contribution (SIP)'},{code:'6035',name:'HRDF Contribution (PSMB)'},{code:'6904',name:'Provision for Doubtful Debts'},{code:'6905',name:'Zakat Perniagaan (Business Zakat)'},{code:'7000',name:'Income Tax Expense'}];
+  var chartAccounts = [{code:'1000',name:'Cash at Bank'},{code:'1010',name:'Petty Cash'},{code:'1020',name:'Cash in Hand'},{code:'1100',name:'Trade Receivables'},{code:'1200',name:'Inventory'},{code:'1300',name:'Prepaid Expenses'},{code:'1400',name:'Fixed Deposits'},{code:'1510',name:'Motor Vehicles'},{code:'1520',name:'Furniture & Fittings'},{code:'1530',name:'Office Equipment'},{code:'1535',name:'Computer & IT'},{code:'1540',name:'Accumulated Depreciation — PPE'},{code:'1550',name:'Accumulated Depreciation — Motor'},{code:'2000',name:'Trade Payables'},{code:'2075',name:'EIS Payable (SIP)'},{code:'2085',name:'HRDF Payable (PSMB)'},{code:'2095',name:'SST Payable (6%)'},{code:'2096',name:'SST Payable (8%)'},{code:'2100',name:'Zakat Perniagaan Payable'},{code:'3000',name:'Share Capital'},{code:'5000',name:'Opening Inventory'},{code:'5010',name:'Purchases'},{code:'5020',name:'Closing Inventory'},{code:'6000',name:'Salary & Wages'},{code:'6100',name:'Rent'},{code:'6130',name:'Insurance'},{code:'6160',name:'Professional Fees'},{code:'6170',name:'Audit Fee'},{code:'6210',name:'Entertainment'},{code:'6220',name:'Bank Charges'},{code:'6230',name:'Interest Expense'},{code:'6300',name:'Depreciation'},{code:'6901',name:'Fines & Penalties'},{code:'6902',name:'Private Expenses'},{code:'6903',name:'Donations (non-approved)'},{code:'6025',name:'EIS Contribution (SIP)'},{code:'6035',name:'HRDF Contribution (PSMB)'},{code:'6904',name:'Provision for Doubtful Debts'},{code:'6905',name:'Zakat Perniagaan (Business Zakat)'},{code:'4010',name:'Sales — Credit'},{code:'2050',name:'Provision for Taxation'},{code:'3200',name:'Drawings'},{code:'6010',name:'EPF Contribution'},{code:'6020',name:'SOCSO Contribution'},{code:'7000',name:'Income Tax Expense'}];
 
   function buildAccountOptions(selectedCode) {
     var accounts = (window.ChartOfAccounts && window.ChartOfAccounts.accounts) || chartAccounts;
@@ -458,7 +460,12 @@
 
   function addNewCompany() {
     var n = prompt('Nama company:'); if (!n || !n.trim()) return;
-    var code = prompt('Code (kosong = auto):'); if (!code || !code.trim()) code = n.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 5) + '-' + String(Date.now()).slice(-3);
+    var code = prompt('Code (kosong = auto):'); if (!code || !code.trim()) {
+      // Generate TRULY unique code: hash name + timestamp + random
+      var ts = Date.now().toString();
+      var rnd = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+      code = n.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4) + '-' + ts.slice(-4) + rnd.slice(-3);
+    }
     var ctypeEl = document.getElementById('companyType');
     var selectedType = ctypeEl ? ctypeEl.value : 'sdn_bhd_normal';
     var defaultRate = (selectedType === 'sdn_bhd_small') ? 15 : (selectedType === 'enterprise') ? 0 : 24;
@@ -567,6 +574,91 @@
     });
   }
 
+  function deleteCompany(companyId) {
+    if (!companyId) {
+      showToast('Pilih company dahulu');
+      return;
+    }
+    if (!confirm('Padam company ini dan SEMUA data jurnal akan hilang tanpa bisa dikembalikan. Lanjutkan?')) {
+      return;
+    }
+    global.Storage.deleteCompany(companyId).then(function (res) {
+      if (res.success) {
+        // Remove from cache
+        var idx = companiesCache.findIndex(function (c) { return c.clientId === companyId || c.id === companyId; });
+        if (idx >= 0) companiesCache.splice(idx, 1);
+        // Remove from dropdown
+        var sel = document.getElementById('company-select');
+        if (sel) {
+          Array.from(sel.options).forEach(function (opt) {
+            if (opt.value === companyId) sel.removeChild(opt);
+          });
+          // Reset selection
+          if (!sel.value || !companiesCache.find(function (c) { return c.clientId === sel.value; })) {
+            sel.value = '';
+          }
+        }
+        currentClientId = '';
+        currentCompany = null;
+        showToast('✓ Company dan data dipadam');
+        recalcAll();
+      } else {
+        showToast('Gagal padam company');
+      }
+    });
+  }
+
+  function editCompany(companyId) {
+    if (!companyId) { showToast('Pilih company dahulu'); return; }
+    var company = companiesCache.find(function (c) { return c.clientId === companyId || c.id === companyId; });
+    if (!company) { showToast('Company tidak ditemukan'); return; }
+
+    var newName = prompt('Nama company (kosong = tak ubah):', company.name);
+    if (newName === null) return; // Cancel
+    if (newName && newName.trim()) company.name = newName.trim();
+
+    var newType = prompt('Type (sdn_bhd_small / sdn_bhd_normal / enterprise / llp) — kosong = tak ubah:', company.type);
+    if (newType === null) return;
+    if (newType && newType.trim()) {
+      var validTypes = ['sdn_bhd_small', 'sdn_bhd_normal', 'enterprise', 'llp'];
+      if (validTypes.indexOf(newType.trim()) >= 0) company.type = newType.trim();
+      else { showToast('Type tidak sah'); return; }
+    }
+
+    var defaultRate = (company.type === 'sdn_bhd_small') ? 15 : (company.type === 'enterprise') ? 0 : 24;
+    var newRateStr = prompt('Tax rate % (kosong = tak ubah, default ' + (company.taxRate || defaultRate) + '):', company.taxRate || defaultRate);
+    if (newRateStr === null) return;
+    if (newRateStr && newRateStr.trim()) {
+      var newRate = parseFloat(newRateStr);
+      if (!isNaN(newRate) && newRate >= 0 && newRate <= 100) company.taxRate = newRate;
+      else { showToast('Tax rate tidak sah'); return; }
+    }
+
+    // CODE TIDAK BERUBAH — ia unik dan kekal
+    company.yearEnd = new Date().getFullYear();
+
+    if (global.Storage && global.Storage.saveClient) global.Storage.saveClient(company);
+    // Update dropdown display text
+    var sel = document.getElementById('company-select');
+    if (sel) {
+      Array.from(sel.options).forEach(function (opt) {
+        if (opt.value === company.clientId) {
+          opt.textContent = company.name + ' (' + (company.journalEntries ? company.journalEntries.length : 0) + ' entries)';
+        }
+      });
+    }
+    // Update current company if viewing this company
+    if (currentClientId === company.clientId || currentCompany && currentCompany.clientId === company.clientId) {
+      currentCompany = company;
+      var typeSelect = document.getElementById('companyType');
+      if (typeSelect) typeSelect.value = company.type || 'sdn_bhd_normal';
+      var taxInput = document.getElementById('tax-rate');
+      if (taxInput) taxInput.value = company.taxRate || 24;
+    }
+    showToast('✓ Company dikemas kini (code: ' + company.code + ' — tak berubah)');
+    recalcAll();
+  }
+
   var App = {
     initApp: initApp,
     changeCompany: changeCompany,
@@ -585,7 +677,9 @@
     addLineToForm: addLineToForm,
     editEntry: editEntry,
     deleteEntry: deleteEntry,
-    exportPdf: exportPdf
+    exportPdf: exportPdf,
+    deleteCompany: deleteCompany,
+    editCompany: editCompany
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = { App: App };
   global.App = App;
