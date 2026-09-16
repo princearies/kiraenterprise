@@ -8,5 +8,7 @@ binding = "DB"
 database_name = "mykira"
 database_id = "4037f2cd-0c4a-4251-846e-534eb7b47338"
 
-# Sambungkan Fail Frontend (index.html, css, js)
-assets = "."
+# Tetapan Assets Baharu
+[assets]
+directory = "."
+binding = "ASSETS"
