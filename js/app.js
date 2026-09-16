@@ -76,7 +76,7 @@
    * CRITICAL: load company data — persist entries to Storage so the Ledger
    * (which reads Storage) can compute balances before reports render.
    */
-  function loadCompanyData(company) {
+  async function loadCompanyData(company) {
     if (!company) return;
     currentCompany = {
       clientId: company.clientId,
@@ -93,20 +93,20 @@
     if (taxInput) taxInput.value = (typeof company.taxRate === 'number') ? company.taxRate : 24;
     // Propagate company tax rate into currentCompany
     currentCompany.taxRate = (typeof company.taxRate === 'number') ? company.taxRate : 24;
-    // Lazy-load entries on demand — check localStorage only when needed
-    if (global.Storage && global.Storage.save && company.clientId && company.journalEntries) {
-      var seededKey = 'kiraV4_seeded_' + company.clientId;
-      var alreadySeeded = false;
-      try { alreadySeeded = localStorage.getItem(seededKey) === 'true'; } catch (e) { /* ignore */ }
-      if (!alreadySeeded) {
-        var lsKey = 'kiraV4_entries_' + company.clientId;
-        var existing = [];
-        try { existing = JSON.parse(localStorage.getItem(lsKey) || '[]'); } catch (e) { /* ignore */ }
-        if (existing.length === 0) {
-          global.Storage.save(lsKey, company.journalEntries || []);
-          try { localStorage.setItem(seededKey, 'true'); } catch (e) { /* ignore */ }
-        }
-      }
+    // Load entries from D1 Database
+    var entries = await loadFromD1(company.clientId);
+    if (entries && entries.length > 0) {
+      showToast('✓ Loaded ' + entries.length + ' entries from D1');
+    } else if (company.journalEntries && company.journalEntries.length > 0) {
+      // Seed from mock data if D1 is empty
+      await saveToD1(company.clientId, company.journalEntries, {
+        name: company.name || '',
+        code: company.code || '',
+        type: company.type || '',
+        taxRate: company.taxRate || 24,
+        yearEnd: company.yearEnd || new Date().getFullYear()
+      });
+      showToast('✓ Data dimuat & disimpan ke D1');
     }
     recalcAll();
     refreshJournalList();
@@ -162,7 +162,7 @@
     lines.appendChild(div);
   }
 
-  function saveJournalFromForm() {
+  async function saveJournalFromForm() {
     var clientId = currentClientId;
     if (!clientId) { showToast('Pilih company dahulu'); return; }
     var date = document.getElementById('j-date') ? document.getElementById('j-date').value : '';
@@ -185,8 +185,8 @@
     if (!lines.length) { showToast('Tiada baris jurnal!'); return; }
     if (Math.abs(totalDebit - totalCredit) > 0.01) { showToast('Debit ≠ Credit!'); return; }
 
-    // Read existing entries directly from localStorage (never wipe other entries)
-    var entries = JSON.parse(localStorage.getItem('kiraV4_entries_' + clientId) || '[]');
+    // Muat entries existing dari D1 (jangan wipe entries lain)
+    var entries = await loadFromD1(clientId);
 
     if (window._editingEntryId) {
       // Edit mode: update existing entry, keep its id
@@ -211,13 +211,14 @@
       entries.push(entry);
     }
 
-    try {
-      localStorage.setItem('kiraV4_entries_' + clientId, JSON.stringify(entries));
-    } catch (e) {
-      showToast('✗ Gagal simpan ke localStorage');
-      console.error(e);
-      return;
-    }
+    // Simpan ke D1 Database
+    await saveToD1(clientId, entries, {
+      name: currentCompany ? currentCompany.name || '' : '',
+      code: currentCompany ? currentCompany.code || '' : '',
+      type: currentCompany ? currentCompany.type || '' : '',
+      taxRate: currentCompany ? (currentCompany.taxRate || 24) : 24,
+      yearEnd: currentCompany ? (currentCompany.yearEnd || new Date().getFullYear()) : new Date().getFullYear()
+    });
 
     // Clear form + reset edit state
     window._editingEntryId = null;
@@ -237,13 +238,50 @@
     return d.innerHTML;
   }
 
-  function refreshJournalList() {
+  /** Simpan entries ke D1 Database melalui Cloudflare Worker API */
+  async function saveToD1(clientId, entries, companyMeta) {
+    try {
+      const res = await fetch('/api/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientId, entries, companyMeta })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('✓ Data berjaya disimpan ke D1 Database!');
+      } else {
+        showToast('Gagal menyimpan: ' + (data.error || 'Ralat tidak diketahui'));
+        console.error('D1 save error:', data.error);
+      }
+      return data;
+    } catch (err) {
+      console.error('Error saving to D1:', err);
+      showToast('Ralat: Network error when saving to D1');
+      return { success: false, error: err.message };
+    }
+  }
+
+  /** Muat entries dari D1 Database melalui Cloudflare Worker API */
+  async function loadFromD1(clientId) {
+    try {
+      const res = await fetch('/api/load?clientId=' + encodeURIComponent(clientId));
+      const data = await res.json();
+      if (data.success) {
+        return data.entries || [];
+      }
+      showToast('Gagal memuat: ' + (data.error || 'Ralat tidak diketahui'));
+      return [];
+    } catch (err) {
+      console.error('Error loading from D1:', err);
+      showToast('Ralat Network error when loading from D1');
+      return [];
+    }
+  }
+
+  async function refreshJournalList() {
     var list = document.getElementById('journal-list');
     if (!list || !currentClientId) return;
-    var entries = [];
-    try {
-      entries = JSON.parse(localStorage.getItem('kiraV4_entries_' + currentClientId) || '[]');
-    } catch (e) { entries = []; }
+    var entries = await loadFromD1(currentClientId);
     if (!entries || entries.length === 0) { list.innerHTML = '<p>Tiada entri untuk ' + (currentClientId || '') + '.</p>'; return; }
     var html = '<h3>Senarai Jurnal (' + entries.length + '):</h3><table border="1" cellpadding="4" cellspacing="0" style="width:100%;border-collapse:collapse;"><tr><th>Tarikh</th><th>Penerangan</th><th>Baris</th><th>Actions</th></tr>';
     entries.forEach(function (e) {
@@ -495,14 +533,17 @@
     showToast('✓ Added: ' + n.trim());
   }
 
-  function saveCurrentCompany() {
+  async function saveCurrentCompany() {
     if (!currentClientId) { showToast('Simpan sebagai company baru dulu'); return; }
-    var entriesPromise = global.Journal && global.Journal.getEntriesByClient ? global.Journal.getEntriesByClient(currentClientId) : Promise.resolve([]);
-    entriesPromise.then(function (entries) {
-      if (global.Storage && global.Storage.saveUserCompanyEntries) return global.Storage.saveUserCompanyEntries(currentClientId, entries || []);
-      if (global.Storage && global.Storage.save) return global.Storage.save('kiraV4_entries_' + currentClientId, entries || []);
-      return Promise.resolve({ success: false, error: 'Unavailable' });
-    }).then(function (res) { showToast(res && res.success ? '✓ Data disimpan' : 'Gagal simpan entries'); }).catch(function () { showToast('Gagal simpan entries'); });
+    var entries = await loadFromD1(currentClientId);
+    var res = await saveToD1(currentClientId, entries, {
+      name: currentCompany ? currentCompany.name || '' : '',
+      code: currentCompany ? currentCompany.code || '' : '',
+      type: currentCompany ? currentCompany.type || '' : '',
+      taxRate: currentCompany ? (currentCompany.taxRate || 24) : 24,
+      yearEnd: currentCompany ? (currentCompany.yearEnd || new Date().getFullYear()) : new Date().getFullYear()
+    });
+    showToast(res && res.success ? '✓ Data disimpan ke D1' : 'Gagal simpan entries');
   }
 
   /**

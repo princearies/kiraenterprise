@@ -1,6 +1,8 @@
 /**
  * Kira Enterprise V4 — Journal Engine (Promise-based, client-scoped)
+ * Uses Cloudflare Worker API (D1 Database) for journal operations.
  */
+
 (function (global) {
   'use strict';
 
@@ -14,6 +16,42 @@
     }
     if (Math.abs(totalDebit - totalCredit) > 0.001) return { success: false, error: 'Debit and Credit must be equal' };
     return { success: true };
+  }
+
+  /** Muat entries dari D1 Database */
+  async function loadEntriesFromD1(clientId) {
+    try {
+      const res = await fetch('/api/load?clientId=' + encodeURIComponent(clientId));
+      const data = await res.json();
+      if (data.success) {
+        return data.entries || [];
+      }
+      console.error('D1 load error:', data.error);
+      return [];
+    } catch (err) {
+      console.error('Error loading from D1:', err);
+      return [];
+    }
+  }
+
+  /** Simpan entries ke D1 Database */
+  async function saveEntriesToD1(clientId, entries, companyMeta) {
+    try {
+      const res = await fetch('/api/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientId, entries, companyMeta })
+      });
+      const data = await res.json();
+      if (data.success) {
+        return { success: true };
+      }
+      console.error('D1 save error:', data.error);
+      return { success: false, error: data.error || 'Ralat tidak diketahui' };
+    } catch (err) {
+      console.error('Error saving to D1:', err);
+      return { success: false, error: err.message };
+    }
   }
 
   function addEntry(clientId, date, description, lines) {
@@ -33,31 +71,47 @@
         };
       })
     };
-    if (!global.Storage || !global.Storage.save) {
-      return Promise.resolve({ success: false, error: 'Storage not available' });
-    }
-    return global.Storage.saveJournalEntry ? global.Storage.saveJournalEntry(clientId, entry).then(function (res) {
+
+    // Muat entries existing dari D1
+    return loadEntriesFromD1(clientId).then(function (existingEntries) {
+      // Add new entry
+      existingEntries.push(entry);
+      // Simpan kembali ke D1
+      return saveEntriesToD1(clientId, existingEntries, null);
+    }).then(function (res) {
       return { success: res.success ? true : false, entry: entry, error: res.error || null };
-    }) : Promise.resolve({ success: false, error: 'Storage saveJournalEntry not available' });
+    });
   }
 
   function deleteEntry(clientId, entryId) {
-    return (global.Storage ? global.Storage.getJournalEntries(clientId) : Promise.resolve([])).then(function (entries) {
+    // Muat entries existing dari D1
+    return loadEntriesFromD1(clientId).then(function (entries) {
       var newEntries = (entries || []).filter(function (e) { return e.id !== entryId; });
-      return (global.Storage ? global.Storage.save('kiraV4_entries_' + String(clientId || '').trim(), newEntries) : Promise.resolve({ success: false }));
-    }).then(function () { return { success: true }; });
+      // Simpan kembali ke D1
+      return saveEntriesToD1(clientId, newEntries, null);
+    }).then(function (res) {
+      return { success: res.success ? true : false, error: res.error || null };
+    });
   }
 
   function editEntry(clientId, entryId, newData) {
-    return (global.Storage ? global.Storage.getJournalEntries(clientId) : Promise.resolve([])).then(function (entries) {
+    // Muat entries existing dari D1
+    return loadEntriesFromD1(clientId).then(function (entries) {
       var idx = (entries || []).findIndex(function (e) { return e.id === entryId; });
       if (idx < 0) return Promise.resolve({ success: false, error: 'Entry not found' });
       var updated = Object.assign({}, entries[idx], newData);
       var check = validateEntry(updated.lines || newData.lines);
       if (!check.success) return Promise.resolve(check);
       entries[idx] = updated;
-      return (global.Storage ? global.Storage.save('kiraV4_entries_' + String(clientId || '').trim(), entries) : Promise.resolve({ success: false }));
+      // Simpan kembali ke D1
+      return saveEntriesToD1(clientId, entries, null);
+    }).then(function (res) {
+      return { success: res.success ? true : false, error: res.error || null };
     });
+  }
+
+  function getEntriesByClient(clientId) {
+    return loadEntriesFromD1(String(clientId || '').trim());
   }
 
   var Journal = {
@@ -65,9 +119,7 @@
     deleteEntry: deleteEntry,
     editEntry: editEntry,
     validateEntry: validateEntry,
-    getEntriesByClient: function (clientId) {
-      return global.Storage ? global.Storage.getJournalEntries(String(clientId || '').trim()) : Promise.resolve([]);
-    }
+    getEntriesByClient: getEntriesByClient
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = { Journal: Journal };

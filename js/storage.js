@@ -1,7 +1,8 @@
 /**
  * Kira Enterprise V4 — Storage Abstraction (Promise-based)
- * All read/write go through here so we can swap localStorage for Cloudflare Workers later.
+ * Semua read/write melalui sini. Sekarang gunakan Cloudflare Worker API (D1).
  */
+
 (function (global) {
   'use strict';
 
@@ -12,104 +13,111 @@
     COMPANIES: 'kiraV4_userCompanies',
   };
 
-  function save(key, data) {
-    return new Promise(function (resolve, reject) {
-      try {
-        localStorage.setItem(key, JSON.stringify(data));
-        resolve({ success: true, key: key });
-      } catch (e) {
-        reject({ success: false, error: e.message, key: key });
+  /** Simpan ke D1 Database */
+  async function saveToD1(key, data) {
+    try {
+      // Gunakan key sebagai clientId untuk simpan ke D1
+      const res = await fetch('/api/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientId: key, entries: data, companyMeta: {} })
+      });
+      const result = await res.json();
+      if (result.success) {
+        return { success: true, key: key };
       }
-    });
+      return { success: false, error: result.error || 'Ralat simpan', key: key };
+    } catch (e) {
+      return { success: false, error: e.message, key: key };
+    }
+  }
+
+  /** Muat dari D1 Database */
+  async function loadFromD1(key, defaultValue) {
+    try {
+      const res = await fetch('/api/load?clientId=' + encodeURIComponent(key));
+      const data = await res.json();
+      if (data.success) {
+        return data.entries || (defaultValue !== undefined ? defaultValue : []);
+      }
+      return defaultValue !== undefined ? defaultValue : [];
+    } catch (e) {
+      return defaultValue !== undefined ? defaultValue : [];
+    }
+  }
+
+  function save(key, data) {
+    return saveToD1(key, data);
   }
 
   function load(key, defaultValue) {
-    return new Promise(function (resolve) {
-      try {
-        var raw = localStorage.getItem(key);
-        if (raw === null || raw === undefined) {
-          resolve(defaultValue !== undefined ? defaultValue : null);
-        } else {
-          resolve(JSON.parse(raw));
-        }
-      } catch (e) {
-        resolve(defaultValue !== undefined ? defaultValue : null);
-      }
-    });
+    return loadFromD1(key, defaultValue);
   }
 
   function clearKey(key) {
-    return new Promise(function (resolve) {
-      try {
-        localStorage.removeItem(key);
-        resolve({ success: true });
-      } catch (e) {
-        resolve({ success: false, error: e.message });
-      }
-    });
+    // Hapus entries untuk key tertentu dari D1 dengan masukkan empty array
+    return saveToD1(key, []);
   }
 
-  function saveUserCompanyEntries(companyId, entries) {
-    return load(STORAGE_KEYS.COMPANIES, []).then(function (companies) {
-      var idx = companies.findIndex(function (c) { return c.clientId === companyId || c.id === companyId; });
-      if (idx >= 0) {
-        // Merge: keep existing entries, append new ones (avoid duplicates by id if present)
-        var existing = companies[idx].entries || [];
-        var newEntries = (entries || []).filter(function (e) {
-          // If entry has an id, check for duplicates; if no id, always add
-          if (!e.id) return true;
-          var existingIds = existing.map(function (ex) { return ex.id; });
-          return existingIds.indexOf(e.id) < 0;
-        });
-        companies[idx].entries = existing.concat(newEntries);
-        return save(STORAGE_KEYS.COMPANIES, companies);
-      }
-      return Promise.resolve({ success: false, error: 'Company not found' });
-    });
+  async function saveUserCompanyEntries(companyId, entries) {
+    // Muat companies dari D1
+    const companies = await load(STORAGE_KEYS.COMPANIES, []);
+    var idx = companies.findIndex(function (c) { return c.clientId === companyId || c.id === companyId; });
+    if (idx >= 0) {
+      // Merge: keep existing entries, append new ones (avoid duplicates by id if present)
+      var existing = companies[idx].entries || [];
+      var newEntries = (entries || []).filter(function (e) {
+        // If entry has an id, check for duplicates; if no id, always add
+        if (!e.id) return true;
+        var existingIds = existing.map(function (ex) { return ex.id; });
+        return existingIds.indexOf(e.id) < 0;
+      });
+      companies[idx].entries = existing.concat(newEntries);
+      await save(STORAGE_KEYS.COMPANIES, companies);
+      return { success: true };
+    }
+    return { success: false, error: 'Company not found' };
   }
 
-  function saveJournalEntry(clientId, entry) {
-    return load('kiraV4_entries_' + clientId, []).then(function (entries) {
-      entries.push(entry);
-      return save('kiraV4_entries_' + clientId, entries);
-    });
+  async function saveJournalEntry(clientId, entry) {
+    const entries = await load('kiraV4_entries_' + clientId, []);
+    entries.push(entry);
+    await save('kiraV4_entries_' + clientId, entries);
+    return { success: true };
   }
 
-  function getJournalEntries(clientId) {
+  async function getJournalEntries(clientId) {
     return load('kiraV4_entries_' + clientId, []);
   }
 
-  function saveClient(company) {
+  async function saveClient(company) {
     if (company && !company.id) company.id = company.clientId || ('c-' + Date.now());
-    return load(STORAGE_KEYS.COMPANIES, []).then(function (companies) {
-      var idx = companies.findIndex(function (c) { return (c.clientId || c.id) === (company ? (company.clientId || company.id) : company.id); });
-      if (idx >= 0) {
-        companies[idx] = Object.assign(companies[idx], company);
-      } else {
-        companies.push(company);
-      }
-      return save(STORAGE_KEYS.COMPANIES, companies);
-    });
+    const companies = await load(STORAGE_KEYS.COMPANIES, []);
+    var idx = companies.findIndex(function (c) { return (c.clientId || c.id) === (company ? (company.clientId || company.id) : company.id); });
+    if (idx >= 0) {
+      companies[idx] = Object.assign(companies[idx], company);
+    } else {
+      companies.push(company);
+    }
+    await save(STORAGE_KEYS.COMPANIES, companies);
+    return { success: true };
   }
 
-  function loadUserCompanies() {
+  async function loadUserCompanies() {
     return load(STORAGE_KEYS.COMPANIES, []);
   }
 
-  function deleteCompany(companyId) {
-    return load(STORAGE_KEYS.COMPANIES, []).then(function (companies) {
-      var idx = companies.findIndex(function (c) { return c.clientId === companyId || c.id === companyId; });
-      if (idx < 0) return Promise.resolve({ success: false, error: 'Company not found' });
-      var removed = companies.splice(idx, 1)[0];
-      return save(STORAGE_KEYS.COMPANIES, companies).then(function () {
-        // Also delete all journal entries for this company
-        var clientId = removed.clientId;
-        if (clientId) {
-          localStorage.removeItem('kiraV4_entries_' + clientId);
-        }
-        return { success: true, removed: removed };
-      });
-    });
+  async function deleteCompany(companyId) {
+    const companies = await load(STORAGE_KEYS.COMPANIES, []);
+    var idx = companies.findIndex(function (c) { return c.clientId === companyId || c.id === companyId; });
+    if (idx < 0) return { success: false, error: 'Company not found' };
+    var removed = companies.splice(idx, 1)[0];
+    await save(STORAGE_KEYS.COMPANIES, companies);
+    // Also delete all journal entries for this company
+    if (removed && removed.clientId) {
+      await save('kiraV4_entries_' + removed.clientId, []);
+    }
+    return { success: true, removed: removed };
   }
 
   var Storage = {
