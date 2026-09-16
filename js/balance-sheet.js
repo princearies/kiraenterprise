@@ -10,22 +10,29 @@
     return 'RM ' + (parseFloat(num) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
+  // ✅ DIPERBAIKI: HTML entities di-escape dengan betul
   function escapeHtml(str) {
     return String(str == null ? '' : str)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   function generateBalanceSheet(clientId, opts) {
     opts = opts || {};
     var taxRate = (opts.taxRate === undefined || opts.taxRate === null || isNaN(parseFloat(opts.taxRate))) ? 24 : parseFloat(opts.taxRate);
+    
     return new Promise(function (resolve, reject) {
       if (!global.Ledger || !global.Ledger.generateGeneralLedger) {
         return resolve({ rendered: false, html: '<p>Ledger module tidak dimuat.</p>', balanced: false });
       }
+      
       global.Ledger.generateGeneralLedger(clientId).then(function (ledger) {
         var bal = {};
         (ledger || []).forEach(function (a) { bal[a.code] = a.balance; }); // debit - credit
+        
         function b(code) { return bal[code] || 0; }
         function creditAmt(code) { return Math.abs(b(code)); }
 
@@ -65,11 +72,15 @@
         var expenses = sumAbs(['6000', '6010', '6020', '6025', '6035', '6100', '6110', '6130', '6160', '6170', '6210', '6220', '6230', '6300', '6901', '6902', '6903', '6904']);
         var zakatExp = sumAbs(['6905']);
         var netProfitBeforeTax = grossProfit - expenses;
+        
         var tax = 0;
         if (netProfitBeforeTax > 0) {
           if (taxRate <= 0) tax = 0;
-          else if (global.TaxComputation && global.TaxComputation.calculateSmeTax) tax = global.TaxComputation.calculateSmeTax(netProfitBeforeTax);
-          else tax = Math.round(netProfitBeforeTax * taxRate / 100);
+          else if (global.TaxComputation && global.TaxComputation.calculateSmeTax) {
+            tax = global.TaxComputation.calculateSmeTax(netProfitBeforeTax);
+          } else {
+            tax = Math.round(netProfitBeforeTax * taxRate / 100);
+          }
         }
         var retainedEarnings = netProfitBeforeTax - tax - zakatExp;
 
@@ -128,10 +139,12 @@
           });
           return h;
         }
+        
         var companyName = opts.companyName || '';
         var html = '<div class="report-header">';
         if (companyName) html += '<h2>' + escapeHtml(companyName) + '</h2>';
         html += '<h2 class="report-company">BALANCE SHEET</h2><p class="report-title">As at ' + new Date().toLocaleDateString('en-GB') + '</p><p class="client-id">Client: ' + (clientId || '') + '</p></div>';
+        
         html += '<table style="width:100%;font-family:inherit;border-collapse:collapse;">';
         html += '<caption style="text-align:center;font-weight:bold;color:#fbbf24;margin:8px 0;font-size:1.1em;">ASSETS</caption>';
         html += '<tr style="background:#334155;color:#fbbf24;font-weight:bold;"><th align="left" style="padding:6px;">Item</th><th align="right" style="padding:6px;">RM</th></tr>';
@@ -141,6 +154,7 @@
         html += '<tr style="font-weight:bold;background:#1e293b;"><td style="padding:6px;">Total Non-Current Assets</td><td align="right" style="padding:6px;">' + formatRM(totalNCA) + '</td></tr>';
         html += '<tr class="grand-total" style="font-weight:bold;background:#0b1220;color:#fff;border-top:2px solid #fbbf24;"><td style="padding:6px;">TOTAL ASSETS</td><td align="right" style="padding:6px;">' + formatRM(totalAssets) + '</td></tr>';
         html += '</table><br>';
+        
         html += '<table style="width:100%;font-family:inherit;border-collapse:collapse;">';
         html += '<caption style="text-align:center;font-weight:bold;color:#fbbf24;margin:8px 0;font-size:1.1em;">LIABILITIES & EQUITY</caption>';
         html += '<tr style="background:#334155;color:#fbbf24;font-weight:bold;"><th align="left" style="padding:6px;">Item</th><th align="right" style="padding:6px;">RM</th></tr>';
@@ -174,6 +188,9 @@
     generateBalanceSheet: generateBalanceSheet,
     formatRM: formatRM
   };
-  if (typeof module !== 'undefined' && module.exports) module.exports = { BalanceSheet: BalanceSheet };
+  
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { BalanceSheet: BalanceSheet };
+  }
   global.BalanceSheet = BalanceSheet;
 })(typeof window !== 'undefined' ? window : (typeof global !== 'undefined' ? global : this));
