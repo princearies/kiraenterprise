@@ -4,95 +4,83 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kira Enterprise V4 — Accounting System</title>
+  <meta name="description" content="Sistem perakaunan enterprise — jurnal, buku besar, imbangan percubaan, P&amp;L, kunci kira-kira, aliran tunai, cukai.">
   <link rel="stylesheet" href="css/main.css">
-  <link rel="stylesheet" href="css/print.css" media="print">
-  <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="css/responsive.css" media="screen">
+  <link rel="stylesheet" href="css/print.css?v=4" media="print">
 </head>
 <body>
   <div class="container">
     <header>
       <h1>Kira Enterprise V4</h1>
-      <p class="subtitle">MFRS / MPERS — Multi-Client Double-Entry System</p>
-    </header>
-
-    <!-- Company Type Filter -->
-    <div class="controls">
-      <label>Company Type:
-        <select id="companyType">
-          <option value="all">All Types</option>
+      <div class="subtitle">MFRS / MPERS — Multi-Client Double-Entry System</div>
+      <div style="margin-top:8px; color: var(--text-muted); font-size: 13px;">
+        Company Type:
+        <select id="companyType" onchange="App.updateTaxRate()" style="padding:4px 8px;border-radius:4px;background:#1e293b;color:#fff;border:1px solid #334155;font-family:inherit;margin-right:4px;">
           <option value="sdn_bhd_small">Sdn Bhd Small (15%/17%)</option>
-          <option value="sdn_bhd_normal">Sdn Bhd Normal (24%)</option>
+          <option value="sdn_bhd_normal" selected>Sdn Bhd Normal (24%)</option>
           <option value="enterprise">Enterprise (0% — personal tax)</option>
           <option value="llp">LLP (24%)</option>
         </select>
-      </label>
-      <label>Tax Rate:
-        <input type="number" id="tax-rate" value="24" min="0" max="100" step="1"> %
-      </label>
-    </div>
+        Tax Rate: <input type="number" id="tax-rate" value="24" min="0" max="100" step="0.1" style="width:60px;padding:4px 6px;border-radius:4px;border:1px solid #334155;background:#0b1220;color:#fff;font-family:inherit;"> %
+      </div>
+      <div class="card" style="margin-top:12px;">
+        <label style="font-weight:bold;color:#fbbf24;">Company:</label>
+        <div class="company-selector">
+          <label for="company-select">Select:</label>
+          <!-- Option di-populate secara dinamik melalui App.init() / App.renderCompanyOptions() -->
+          <select id="company-select" onchange="App.changeCompany(this.value)">
+            <option value="">-- Select Company --</option>
+          </select>
+          <button class="btn-add-company" onclick="App.addNewCompany()">+ Add Company</button>
+          <button class="btn-save-company" onclick="App.saveCurrentCompany()">Save</button>
+          <button class="btn-delete-company" onclick="App.deleteCompany(document.getElementById('company-select').value)" style="background:#2563eb;color:#fff;padding:4px 10px;border-radius:4px;border:none;font-family:inherit;font-weight:bold;margin-left:8px;">🗑️ Padam Company</button>
+          <button class="btn-edit-company" onclick="App.editCompany(document.getElementById('company-select').value)" style="background:#a855f7;color:#fff;padding:4px 10px;border-radius:4px;border:none;font-family:inherit;font-weight:bold;margin-left:8px;">✏️ Edit Company</button>
+        </div>
+      </div>
+    </header>
 
-    <!-- Company Selector -->
-    <div class="company-panel">
-      <h3>Company:</h3>
-      <label>Select:
-        <select id="company-select" onchange="App.changeCompany(this.value)">
-          <option value="">-- Pilih Company --</option>
-        </select>
-      </label>
-      <button class="btn btn-add" onclick="App.addNewCompany()">+ Add Company</button>
-      <button class="btn btn-save" onclick="App.saveCurrentCompany()">Save</button>
-      <button class="btn btn-delete" onclick="App.deleteCompany(document.getElementById('company-select').value)">🗑️ Padam Company</button>
-      <button class="btn btn-edit" onclick="App.editCompany(document.getElementById('company-select').value)">✏️ Edit Company</button>
-    </div>
-
-    <hr>
-
-    <!-- Tab Navigation -->
-    <nav class="tabs">
-      <button class="tab-btn active" id="tab-journal" onclick="App.switchTab('journal')">Journal</button>
-      <button class="tab-btn" id="tab-ledger" onclick="App.switchTab('ledger')">Ledger</button>
-      <button class="tab-btn" id="tab-tb" onclick="App.switchTab('trial')">Trial Balance</button>
-      <button class="tab-btn" id="tab-pl" onclick="App.switchTab('pl')">Trading & P&L</button>
-      <button class="tab-btn" id="tab-bs" onclick="App.switchTab('bs')">Balance Sheet</button>
-      <button class="tab-btn" id="tab-cf" onclick="App.switchTab('cashflow')">Cash Flow</button>
-      <button class="tab-btn" id="tab-tax" onclick="App.switchTab('tax')">Tax</button>
-      <button class="tab-btn" onclick="App.exportPdf('panel-' + (App.currentTab || 'journal'), 'report.pdf')">📄 Export PDF</button>
+    <nav class="tab-nav" aria-label="Main tabs">
+      <button class="tab-btn active" id="tab-journal" onclick="App.switchTab('journal');">Journal</button>
+      <button class="tab-btn" id="tab-ledger" onclick="App.switchTab('ledger');">Ledger</button>
+      <button class="tab-btn" id="tab-tb" onclick="App.switchTab('trial');">Trial Balance</button>
+      <button class="tab-btn" id="tab-pl" onclick="App.switchTab('pl');">Trading &amp; P&amp;L</button>
+      <button class="tab-btn" id="tab-bs" onclick="App.switchTab('bs');">Balance Sheet</button>
+      <button class="tab-btn" id="tab-cf" onclick="App.switchTab('cashflow');">Cash Flow</button>
+      <button class="tab-btn" id="tab-tax" onclick="App.switchTab('tax');">Tax</button>
+      <button class="tab-btn" id="btn-export-pdf" onclick="App.exportPdf(document.querySelector('section[style*=\'block\']') ? document.querySelector('section[style*=\'block\']').id : 'panel-journal', 'KiraV4-Report')" title="Export report semasa sebagai PDF">📄 Export PDF</button>
     </nav>
 
-    <!-- Tab Panels -->
-    <main>
-      <div id="panel-journal" class="panel"></div>
-      <div id="panel-ledger" class="panel" style="display:none;"></div>
-      <div id="panel-trial" class="panel" style="display:none;"></div>
-      <div id="panel-pl" class="panel" style="display:none;"></div>
-      <div id="panel-bs" class="panel" style="display:none;"></div>
-      <div id="panel-cashflow" class="panel" style="display:none;"></div>
-      <div id="panel-tax" class="panel" style="display:none;">
-        <h2>Tax Computation</h2>
-        <div id="tax-output">Select a company.</div>
-        <h2>Capital Allowance</h2>
-        <div id="ca-output">Select a company.</div>
-      </div>
-    </main>
+    <section id="panel-journal" style="display:block;"></section>
+    <section id="panel-ledger" style="display:none;"></section>
+    <section id="panel-trial" style="display:none;"></section>
+    <section id="panel-pl" style="display:none;"></section>
+    <section id="panel-bs" style="display:none;"></section>
+    <section id="panel-cashflow" style="display:none;"></section>
+    <section id="panel-tax" style="display:none;">
+      <h2>Tax Computation</h2>
+      <div id="tax-output">Select a company.</div>
+      <h2>Capital Allowance</h2>
+      <div id="ca-output">Select a company.</div>
+    </section>
+
+    <div id="toast" aria-live="polite"></div>
   </div>
 
-  <!-- Toast Notification -->
-  <div id="toast" style="display:none;position:fixed;bottom:20px;right:20px;background:#10b981;color:#fff;padding:12px 20px;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.3);z-index:9999;"></div>
-
-  <!-- Scripts (load order matters!) -->
-  <script src="js/storage.js"></script>
-  <script src="js/chart-of-accounts.js"></script>
-  <script src="js/utils.js"></script>
-  <script src="js/validation.js"></script>
-  <script src="js/journal.js"></script>
-  <script src="js/ledger.js"></script>
-  <script src="js/trial-balance.js"></script>
-  <script src="js/trading-pl.js"></script>
-  <script src="js/balance-sheet.js"></script>
-  <script src="js/cash-flow.js"></script>
-  <script src="js/tax-computation.js"></script>
-  <script src="js/capital-allowance.js"></script>
-  <script src="js/html2pdf.bundle.min.js"></script>
-  <script src="js/app.js"></script>
+  <!-- Javascript Modules -->
+  <script src="js/utils.js?v=6"></script>
+  <script src="js/storage.js?v=6"></script>
+  <script src="js/chart-of-accounts.js?v=6"></script>
+  <script src="js/validation.js?v=6"></script>
+  <script src="js/journal.js?v=6"></script>
+  <script src="js/ledger.js?v=6"></script>
+  <script src="js/trial-balance.js?v=6"></script>
+  <script src="js/trading-pl.js?v=6"></script>
+  <script src="js/balance-sheet.js?v=6"></script>
+  <script src="js/cash-flow.js?v=6"></script>
+  <script src="js/tax-computation.js?v=6"></script>
+  <script src="js/capital-allowance.js?v=6"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+  <script src="js/app.js?v=6"></script>
 </body>
 </html>
