@@ -1,5 +1,5 @@
 /**
- * Kira Enterprise V4 — Storage Abstraction (Cloudflare D1 Worker Integrated)
+ * Kira Enterprise V4 — Storage Abstraction (Cloudflare D1 Worker Integrated - Fully Fixed)
  */
 (function (global) {
   'use strict';
@@ -11,17 +11,24 @@
     COMPANIES: 'kiraV4_userCompanies',
   };
 
-  // 1. Simpan Syarikat Ke Cloudflare D1
+  // 1. Simpan Syarikat Ke Cloudflare D1 (Dengan Perlindungan Data Jurnal)
   function saveClient(company) {
-    if (company && !company.id) company.id = company.clientId || ('c-' + Date.now());
+    if (!company) return Promise.resolve({ success: false });
+    if (!company.id) company.id = company.clientId || ('c-' + Date.now());
     const clientId = company.clientId || company.id;
 
-    return loadUserCompanies().then(function (companies) {
+    return loadUserCompanies().then(async function (companies) {
       var idx = companies.findIndex(function (c) { return (c.clientId || c.id) === clientId; });
       if (idx >= 0) {
         companies[idx] = Object.assign(companies[idx], company);
       } else {
         companies.push(company);
+      }
+
+      // Pastikan entries tidak bertukar jadi [] jika tidak dihantar bersama objek company
+      let entriesToSave = company.entries;
+      if (!entriesToSave || !entriesToSave.length) {
+        entriesToSave = await getJournalEntries(clientId);
       }
 
       // Hantar senarai syarikat & data ke D1 Database
@@ -30,13 +37,13 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           clientId: clientId,
-          entries: company.entries || [],
+          entries: entriesToSave || [],
           companyMeta: { companiesList: companies, activeCompany: company }
         })
       }).then(res => res.json())
         .then(data => {
           localStorage.setItem(STORAGE_KEYS.COMPANIES, JSON.stringify(companies));
-          return { success: data.success };
+          return { success: data.success, clientId: clientId };
         });
     });
   }
@@ -48,7 +55,7 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         clientId: companyId,
-        entries: entries,
+        entries: entries || [],
         companyMeta: { updated: new Date().toISOString() }
       })
     }).then(res => res.json())
@@ -60,7 +67,7 @@
       });
   }
 
-  // 3. Muat Senarai Syarikat dari D1 / Cache
+  // 3. Muat Senarai Syarikat dari Cache / Memory
   function loadUserCompanies() {
     return new Promise(function (resolve) {
       var raw = localStorage.getItem(STORAGE_KEYS.COMPANIES);
