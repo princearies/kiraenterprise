@@ -1,4 +1,4 @@
-name = "kira-enterprise-v4"
+name = "kiraenterprise"
 main = "src/worker.js"
 compatibility_date = "2024-01-01"
 
@@ -7,3 +7,6 @@ compatibility_date = "2024-01-01"
 binding = "DB"
 database_name = "mykira"
 database_id = "4037f2cd-0c4a-4251-846e-534eb7b47338"
+
+# Sambungkan Fail Frontend (index.html, css, js)
+assets = "."
