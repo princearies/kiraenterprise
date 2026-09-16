@@ -1,6 +1,7 @@
 /**
  * Kira Enterprise V4 — Multi-Client Accounting System (Main App Controller)
- * Data flow: mock-data-v4.json → Storage (kiraV4_entries_<clientId>) → Ledger → Reports.
+ * Data flow: mock-data-v4.json → Storage (D1/localStorage) → Ledger → Reports
+ * Production-ready for Cloudflare deployment
  */
 (function (global) {
   'use strict';
@@ -29,7 +30,7 @@
       .then(function (data) {
         if (data && data.companies) {
           companiesCache = data.companies;
-          // 1) Save METADATA only — entries are lazy-loaded on demand
+          // Save METADATA only — entries are lazy-loaded on demand
           data.companies.forEach(function (company) {
             if (global.Storage && global.Storage.saveClient) {
               global.Storage.saveClient({
@@ -42,9 +43,9 @@
               });
             }
           });
-          // 2) Populate dropdown
+          // Populate dropdown
           populateCompanyDropdown(data.companies);
-          // 3) Auto-load first company
+          // Auto-load first company
           if (data.companies.length > 0) {
             loadCompanyData(data.companies[0]);
           }
@@ -69,13 +70,8 @@
       option.setAttribute('data-type', company.type || 'sdn_bhd_normal');
       select.appendChild(option);
     });
-    // index.html already wires onchange="App.changeCompany(this.value)"
   }
 
-  /**
-   * CRITICAL: load company data — persist entries to Storage so the Ledger
-   * (which reads Storage) can compute balances before reports render.
-   */
   function loadCompanyData(company) {
     if (!company) return;
     currentCompany = {
@@ -91,8 +87,8 @@
     if (typeSelect) typeSelect.value = company.type || 'sdn_bhd_normal';
     var taxInput = document.getElementById('tax-rate');
     if (taxInput) taxInput.value = (typeof company.taxRate === 'number') ? company.taxRate : 24;
-    // Propagate company tax rate into currentCompany
     currentCompany.taxRate = (typeof company.taxRate === 'number') ? company.taxRate : 24;
+    
     // Lazy-load entries on demand — check localStorage only when needed
     if (global.Storage && global.Storage.save && company.clientId && company.journalEntries) {
       var seededKey = 'kiraV4_seeded_' + company.clientId;
@@ -125,7 +121,6 @@
     }
   }
 
-  /** Recompute everything in the correct order: Journal → Ledger → Reports. */
   function recalcAll() {
     refreshJournalList();
     renderLedgerTab();
@@ -148,7 +143,6 @@
       '<button type="submit">Save Entry</button>' +
       '</form><div id="journal-list"></div>';
     refreshJournalList();
-    // Add one blank journal line by default
     window.App.addLineToForm('', '', 0, 0);
   }
 
@@ -178,18 +172,15 @@
         credit: parseFloat(crEl ? crEl.value : 0) || 0
       });
     });
-    // Ignore completely blank rows
     lines = lines.filter(function (l) { return l.accountCode || l.debit || l.credit; });
     var totalDebit = lines.reduce(function (s, l) { return s + (l.debit || 0); }, 0);
     var totalCredit = lines.reduce(function (s, l) { return s + (l.credit || 0); }, 0);
     if (!lines.length) { showToast('Tiada baris jurnal!'); return; }
     if (Math.abs(totalDebit - totalCredit) > 0.01) { showToast('Debit ≠ Credit!'); return; }
 
-    // Read existing entries directly from localStorage (never wipe other entries)
     var entries = JSON.parse(localStorage.getItem('kiraV4_entries_' + clientId) || '[]');
 
     if (window._editingEntryId) {
-      // Edit mode: update existing entry, keep its id
       var idx = entries.findIndex(function (e) { return e.id === window._editingEntryId; });
       if (idx < 0) { showToast('⚠ Entry not found'); return; }
       entries[idx] = {
@@ -200,7 +191,6 @@
         lines: lines
       };
     } else {
-      // New entry with unique ID
       var entry = {
         clientId: clientId,
         id: 'je-' + clientId + '-' + Date.now().toString(),
@@ -219,7 +209,6 @@
       return;
     }
 
-    // Clear form + reset edit state
     window._editingEntryId = null;
     var d = document.getElementById('j-date'); if (d) d.value = '';
     var ds = document.getElementById('j-desc'); if (ds) ds.value = '';
@@ -266,13 +255,32 @@
     global.Journal.deleteEntry(currentClientId, entryId).then(function () { recalcAll(); showToast('Entri dihapus.'); });
   }
 
-  // Chart of accounts (static from chart-of-accounts.js)
-  var chartAccounts = [{code:'1000',name:'Cash at Bank'},{code:'1010',name:'Petty Cash'},{code:'1020',name:'Cash in Hand'},{code:'1100',name:'Trade Receivables'},{code:'1200',name:'Inventory'},{code:'1300',name:'Prepaid Expenses'},{code:'1400',name:'Fixed Deposits'},{code:'1510',name:'Motor Vehicles'},{code:'1520',name:'Furniture & Fittings'},{code:'1530',name:'Office Equipment'},{code:'1535',name:'Computer & IT'},{code:'1540',name:'Accumulated Depreciation — PPE'},{code:'1550',name:'Accumulated Depreciation — Motor'},{code:'2000',name:'Trade Payables'},{code:'2075',name:'EIS Payable (SIP)'},{code:'2085',name:'HRDF Payable (PSMB)'},{code:'2095',name:'SST Payable (6%)'},{code:'2096',name:'SST Payable (8%)'},{code:'2100',name:'Zakat Perniagaan Payable'},{code:'3000',name:'Share Capital'},{code:'5000',name:'Opening Inventory'},{code:'5010',name:'Purchases'},{code:'5020',name:'Closing Inventory'},{code:'6000',name:'Salary & Wages'},{code:'6100',name:'Rent'},{code:'6130',name:'Insurance'},{code:'6160',name:'Professional Fees'},{code:'6170',name:'Audit Fee'},{code:'6210',name:'Entertainment'},{code:'6220',name:'Bank Charges'},{code:'6230',name:'Interest Expense'},{code:'6300',name:'Depreciation'},{code:'6901',name:'Fines & Penalties'},{code:'6902',name:'Private Expenses'},{code:'6903',name:'Donations (non-approved)'},{code:'6025',name:'EIS Contribution (SIP)'},{code:'6035',name:'HRDF Contribution (PSMB)'},{code:'6904',name:'Provision for Doubtful Debts'},{code:'6905',name:'Zakat Perniagaan (Business Zakat)'},{code:'4010',name:'Sales — Credit'},{code:'2050',name:'Provision for Taxation'},{code:'3200',name:'Drawings'},{code:'6010',name:'EPF Contribution'},{code:'6020',name:'SOCSO Contribution'},{code:'7000',name:'Income Tax Expense'}];
+  var chartAccounts = [
+    {code:'1000',name:'Cash at Bank'},{code:'1010',name:'Petty Cash'},{code:'1020',name:'Cash in Hand'},
+    {code:'1100',name:'Trade Receivables'},{code:'1200',name:'Inventory'},{code:'1300',name:'Prepaid Expenses'},
+    {code:'1400',name:'Fixed Deposits'},{code:'1510',name:'Motor Vehicles'},{code:'1520',name:'Furniture & Fittings'},
+    {code:'1530',name:'Office Equipment'},{code:'1535',name:'Computer & IT'},{code:'1540',name:'Accumulated Depreciation — PPE'},
+    {code:'1550',name:'Accumulated Depreciation — Motor'},{code:'2000',name:'Trade Payables'},
+    {code:'2050',name:'Provision for Taxation'},{code:'2075',name:'EIS Payable (SIP)'},
+    {code:'2085',name:'HRDF Payable (PSMB)'},{code:'2095',name:'SST Payable (6%)'},{code:'2096',name:'SST Payable (8%)'},
+    {code:'2100',name:'Zakat Perniagaan Payable'},{code:'2200',name:'Long-term Loan'},
+    {code:'3000',name:'Share Capital'},{code:'3200',name:'Drawings'},
+    {code:'4000',name:'Sales — Cash'},{code:'4010',name:'Sales — Credit'},
+    {code:'5000',name:'Opening Inventory'},{code:'5010',name:'Purchases'},{code:'5020',name:'Closing Inventory'},
+    {code:'6000',name:'Salary & Wages'},{code:'6010',name:'EPF Contribution'},{code:'6020',name:'SOCSO Contribution'},
+    {code:'6025',name:'EIS Contribution (SIP)'},{code:'6035',name:'HRDF Contribution (PSMB)'},
+    {code:'6100',name:'Rent'},{code:'6110',name:'Utilities'},{code:'6130',name:'Insurance'},
+    {code:'6160',name:'Professional Fees'},{code:'6170',name:'Audit Fee'},{code:'6210',name:'Entertainment'},
+    {code:'6220',name:'Bank Charges'},{code:'6230',name:'Interest Expense'},{code:'6300',name:'Depreciation'},
+    {code:'6901',name:'Fines & Penalties'},{code:'6902',name:'Private Expenses'},
+    {code:'6903',name:'Donations (non-approved)'},{code:'6904',name:'Provision for Doubtful Debts'},
+    {code:'6905',name:'Zakat Perniagaan (Business Zakat)'},{code:'7000',name:'Income Tax Expense'}
+  ];
 
   function buildAccountOptions(selectedCode) {
     var accounts = (window.ChartOfAccounts && window.ChartOfAccounts.accounts) || chartAccounts;
     var html = '<option value="">-- Pilih Akaun --</option>';
-    accounts.forEach(function(a){ html += '<option value="'+a.code+'" '+(selectedCode===a.code?'selected':'')+'>'+a.code+' \u2014 '+a.name+'</option>'; });
+    accounts.forEach(function(a){ html += '<option value="'+a.code+'" '+(selectedCode===a.code?'selected':'')+'>'+a.code+' — '+a.name+'</option>'; });
     return html;
   }
 
@@ -308,19 +316,17 @@
     });
   }
 
-  // Aliases for button handlers
   function deleteEntry(entryId) {
     if (!confirm('Padam entri ini? Tindakan ini tidak boleh dibatalkan.')) {
       return;
     }
-
     if (global.Journal && global.Journal.deleteEntry) {
       global.Journal.deleteEntry(currentClientId, entryId);
       refreshJournalList();
       recalcAll();
-      showToast('🗑️ Entry deleted');
+      showToast('️ Entry deleted');
     } else {
-      showToast(' Delete function not available');
+      showToast('Delete function not available');
     }
   }
 
@@ -461,7 +467,6 @@
   function addNewCompany() {
     var n = prompt('Nama company:'); if (!n || !n.trim()) return;
     var code = prompt('Code (kosong = auto):'); if (!code || !code.trim()) {
-      // Generate TRULY unique code: hash name + timestamp + random
       var ts = Date.now().toString();
       var rnd = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
       code = n.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4) + '-' + ts.slice(-4) + rnd.slice(-3);
@@ -505,29 +510,19 @@
     }).then(function (res) { showToast(res && res.success ? '✓ Data disimpan' : 'Gagal simpan entries'); }).catch(function () { showToast('Gagal simpan entries'); });
   }
 
-  /**
-   * Export the currently active report panel to PDF (html2pdf.js).
-   * Panel mapping: currentTab -> panel id.
-   */
   function exportPdf(elementId, filename) {
     var element = document.getElementById(elementId);
     if (!element) {
-      showToast('⚠ Panel not found');
+      showToast(' Panel not found');
       return;
     }
-
-    // 1. Clone the element to avoid modifying the visible screen
     var clone = element.cloneNode(true);
-
-    // 2. Physically REMOVE unwanted elements from the clone
     var unwanted = clone.querySelectorAll('.client-id, .balanced, .no-print, [data-html2canvas-ignore]');
     for (var i = 0; i < unwanted.length; i++) {
       if (unwanted[i].parentNode) {
         unwanted[i].parentNode.removeChild(unwanted[i]);
       }
     }
-
-    // 3. Force clean white background and pure black text for PDF
     clone.style.backgroundColor = '#ffffff';
     clone.style.color = '#000000';
     var allChildren = clone.querySelectorAll('*');
@@ -546,8 +541,6 @@
       tds[m].style.border = '1px solid #666';
       tds[m].style.color = '#000000';
     }
-
-    // 4. Generate PDF from the cleaned clone
     var opt = {
       margin: 10,
       filename: filename || 'report.pdf',
@@ -563,9 +556,7 @@
         orientation: 'portrait'
       }
     };
-
     showToast('⏳ Generating PDF...');
-
     html2pdf().set(opt).from(clone).save(filename).then(function() {
       showToast('✓ PDF dijana: ' + filename);
     }).catch(function(err) {
@@ -584,16 +575,13 @@
     }
     global.Storage.deleteCompany(companyId).then(function (res) {
       if (res.success) {
-        // Remove from cache
         var idx = companiesCache.findIndex(function (c) { return c.clientId === companyId || c.id === companyId; });
         if (idx >= 0) companiesCache.splice(idx, 1);
-        // Remove from dropdown
         var sel = document.getElementById('company-select');
         if (sel) {
           Array.from(sel.options).forEach(function (opt) {
             if (opt.value === companyId) sel.removeChild(opt);
           });
-          // Reset selection
           if (!sel.value || !companiesCache.find(function (c) { return c.clientId === sel.value; })) {
             sel.value = '';
           }
@@ -612,11 +600,9 @@
     if (!companyId) { showToast('Pilih company dahulu'); return; }
     var company = companiesCache.find(function (c) { return c.clientId === companyId || c.id === companyId; });
     if (!company) { showToast('Company tidak ditemukan'); return; }
-
     var newName = prompt('Nama company (kosong = tak ubah):', company.name);
-    if (newName === null) return; // Cancel
+    if (newName === null) return;
     if (newName && newName.trim()) company.name = newName.trim();
-
     var newType = prompt('Type (sdn_bhd_small / sdn_bhd_normal / enterprise / llp) — kosong = tak ubah:', company.type);
     if (newType === null) return;
     if (newType && newType.trim()) {
@@ -624,7 +610,6 @@
       if (validTypes.indexOf(newType.trim()) >= 0) company.type = newType.trim();
       else { showToast('Type tidak sah'); return; }
     }
-
     var defaultRate = (company.type === 'sdn_bhd_small') ? 15 : (company.type === 'enterprise') ? 0 : 24;
     var newRateStr = prompt('Tax rate % (kosong = tak ubah, default ' + (company.taxRate || defaultRate) + '):', company.taxRate || defaultRate);
     if (newRateStr === null) return;
@@ -633,12 +618,8 @@
       if (!isNaN(newRate) && newRate >= 0 && newRate <= 100) company.taxRate = newRate;
       else { showToast('Tax rate tidak sah'); return; }
     }
-
-    // CODE TIDAK BERUBAH — ia unik dan kekal
     company.yearEnd = new Date().getFullYear();
-
     if (global.Storage && global.Storage.saveClient) global.Storage.saveClient(company);
-    // Update dropdown display text
     var sel = document.getElementById('company-select');
     if (sel) {
       Array.from(sel.options).forEach(function (opt) {
@@ -647,7 +628,6 @@
         }
       });
     }
-    // Update current company if viewing this company
     if (currentClientId === company.clientId || currentCompany && currentCompany.clientId === company.clientId) {
       currentCompany = company;
       var typeSelect = document.getElementById('companyType');
@@ -681,8 +661,8 @@
     deleteCompany: deleteCompany,
     editCompany: editCompany
   };
+  
   if (typeof module !== 'undefined' && module.exports) module.exports = { App: App };
   global.App = App;
-  // Scripts load at end of <body>, so DOM is ready — bootstrap now.
   initApp();
 })(typeof window !== 'undefined' ? window : (typeof global !== 'undefined' ? global : this));
