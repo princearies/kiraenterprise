@@ -19,7 +19,8 @@
         var bal = 0;
         (entries || []).forEach(function (e) {
           (e.lines || []).forEach(function (l) {
-            if (String(l.accountCode || '').trim() === targetCode) {
+            var lineCode = String(l.accountCode || l.code || '').trim();
+            if (lineCode === targetCode) {
               if (isCreditNormal(targetCode)) {
                 bal += (parseFloat(l.credit) || 0) - (parseFloat(l.debit) || 0);
               } else {
@@ -40,10 +41,15 @@
         var mapAcc = {};
         (entries || []).forEach(function (e) {
           (e.lines || []).forEach(function (l) {
-            var c = String(l.accountCode || '').trim();
+            var c = String(l.accountCode || l.code || '').trim();
             if (!c) return;
+            
             if (!mapAcc[c]) {
-              mapAcc[c] = { code: c, name: l.accountName || '', totalDebit: 0, totalCredit: 0, balance: 0 };
+              var accName = l.accountName || l.name || '';
+              if (!accName && global.ChartOfAccounts && global.ChartOfAccounts.getAccountName) {
+                accName = global.ChartOfAccounts.getAccountName(c);
+              }
+              mapAcc[c] = { code: c, name: accName, totalDebit: 0, totalCredit: 0, balance: 0 };
             }
             mapAcc[c].totalDebit += (parseFloat(l.debit) || 0);
             mapAcc[c].totalCredit += (parseFloat(l.credit) || 0);
