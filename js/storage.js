@@ -1,119 +1,97 @@
-// js/storage.js - API Service & Browser Cache Layer
-
-var Storage = (function () {
+/**
+ * Kira Enterprise V4 — Unified Storage Engine
+ * Handles persistence for clients and journal entries across local storage and workers.
+ */
+(function (global) {
   'use strict';
 
-  var CACHE_PREFIX = 'kira_cache_';
+  var PREFIX_ENTRIES = 'kiraV4_entries_';
+  var PREFIX_CLIENTS = 'kiraV4_clients';
 
-  // Helper: Simpan data ke LocalStorage
-  function setLocal(key, value) {
-    try {
-      localStorage.setItem(CACHE_PREFIX + key, JSON.stringify(value));
-    } catch (e) {
-      console.warn('LocalStorage penuh atau disekat:', e);
-    }
-  }
-
-  // Helper: Ambil data dari LocalStorage
-  function getLocal(key) {
-    try {
-      var data = localStorage.getItem(CACHE_PREFIX + key);
-      return data ? JSON.parse(data) : null;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  // 1. Ambil Senarai Syarikat (Fast Cache-First)
-  async function getCompanies() {
-    var cached = getLocal('companies');
-    
-    // Kemaskini data secara senyap di latar belakang
-    fetch('/api/companies')
-      .then(function (res) { return res.json(); })
-      .then(function (result) {
-        if (result.success) {
-          setLocal('companies', result.companies);
+  function getJournalEntries(clientId) {
+    return new Promise(function (resolve) {
+      if (!clientId) return resolve([]);
+      var key = PREFIX_ENTRIES + String(clientId).trim();
+      var entries = [];
+      try {
+        var raw = localStorage.getItem(key);
+        if (raw) {
+          entries = JSON.parse(raw);
         }
-      })
-      .catch(function (err) { console.error('Background fetch failed:', err); });
-
-    // Pulangkan cache serta-merta jika wujud
-    if (cached) return cached;
-
-    // Jika tiada cache, tunggu hasil fetch pertama
-    try {
-      var res = await fetch('/api/companies');
-      var result = await res.json();
-      if (result.success) {
-        setLocal('companies', result.companies);
-        return result.companies;
+      } catch (e) {
+        console.error('Storage getJournalEntries error:', e);
       }
-    } catch (err) {
-      console.error('Ralat fetch companies:', err);
-    }
-    return [];
-  }
-
-  // 2. Muat Data Syarikat Khusus (Cache-First)
-  async function loadCompany(clientId) {
-    if (!clientId) return null;
-    var cached = getLocal('company_' + clientId);
-
-    // Fetch data terkini di latar belakang
-    fetch('/api/load?clientId=' + encodeURIComponent(clientId))
-      .then(function (res) { return res.json(); })
-      .then(function (result) {
-        if (result.success) {
-          setLocal('company_' + clientId, result);
-        }
-      });
-
-    if (cached) return cached;
-
-    try {
-      var res = await fetch('/api/load?clientId=' + encodeURIComponent(clientId));
-      var result = await res.json();
-      if (result.success) {
-        setLocal('company_' + clientId, result);
-        return result;
-      }
-    } catch (err) {
-      console.error('Ralat load company:', err);
-    }
-    return null;
-  }
-
-  // 3. Simpan Syarikat & Padam Cache Supaya Data Sentiasa Tepat
-  async function saveCompany(clientId, companyMeta, entries) {
-    var payload = {
-      clientId: clientId,
-      companyMeta: companyMeta || {},
-      entries: entries || []
-    };
-
-    // Kemaskini cache tempatan dengan serta-merta
-    setLocal('company_' + clientId, {
-      success: true,
-      companyMeta: companyMeta,
-      entries: entries
+      resolve(entries || []);
     });
-
-    try {
-      var res = await fetch('/api/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      return await res.json();
-    } catch (err) {
-      return { success: false, error: err.message };
-    }
   }
 
-  return {
-    getCompanies: getCompanies,
-    loadCompany: loadCompany,
-    saveCompany: saveCompany
+  function saveJournalEntries(clientId, entries) {
+    return new Promise(function (resolve) {
+      if (!clientId) return resolve(false);
+      var key = PREFIX_ENTRIES + String(clientId).trim();
+      try {
+        localStorage.setItem(key, JSON.stringify(entries || []));
+        resolve(true);
+      } catch (e) {
+        console.error('Storage saveJournalEntries error:', e);
+        resolve(false);
+      }
+    });
+  }
+
+  function getClients() {
+    return new Promise(function (resolve) {
+      var clients = [];
+      try {
+        var raw = localStorage.getItem(PREFIX_CLIENTS);
+        if (raw) clients = JSON.parse(raw);
+      } catch (e) {
+        console.error('Storage getClients error:', e);
+      }
+      resolve(clients || []);
+    });
+  }
+
+  function saveClient(client) {
+    return new Promise(function (resolve) {
+      if (!client || !client.clientId) return resolve(false);
+      getClients().then(function (clients) {
+        var existingIdx = clients.findIndex(function (c) { return c.clientId === client.clientId; });
+        if (existingIdx >= 0) {
+          clients[existingIdx] = client;
+        } else {
+          clients.push(client);
+        }
+        try {
+          localStorage.setItem(PREFIX_CLIENTS, JSON.stringify(clients));
+          resolve(true);
+        } catch (e) {
+          resolve(false);
+        }
+      });
+    });
+  }
+
+  function clearClientEntries(clientId) {
+    return new Promise(function (resolve) {
+      if (!clientId) return resolve(false);
+      try {
+        localStorage.removeItem(PREFIX_ENTRIES + String(clientId).trim());
+        resolve(true);
+      } catch (e) {
+        resolve(false);
+      }
+    });
+  }
+
+  var Storage = {
+    getJournalEntries: getJournalEntries,
+    saveJournalEntries: saveJournalEntries,
+    getClients: getClients,
+    saveClient: saveClient,
+    clearClientEntries: clearClientEntries
   };
-})();
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = { Storage: Storage };
+  global.Storage = Storage;
+})(typeof window !== 'undefined' ? window : (typeof global !== 'undefined' ? global : this));
