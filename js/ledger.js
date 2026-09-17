@@ -4,14 +4,28 @@
 (function (global) {
   'use strict';
 
+  function isCreditNormal(accountCode) {
+    var c = parseInt(accountCode, 10);
+    // Liabilities (2000s), Equity (3000s), Revenue (4000s), Closing Inventory (5020)
+    return (c >= 2000 && c < 4000) || c === 4000 || c === 4010 || c === 5020;
+  }
+
   function getAccountBalance(clientId, code) {
     return new Promise(function (resolve) {
       if (!global.Storage || !global.Storage.getJournalEntries) return resolve(0);
+      var targetCode = String(code || '').trim();
+      
       global.Storage.getJournalEntries(String(clientId || '').trim()).then(function (entries) {
         var bal = 0;
         (entries || []).forEach(function (e) {
           (e.lines || []).forEach(function (l) {
-            if (l.accountCode === code) bal += (l.debit || 0) - (l.credit || 0);
+            if (String(l.accountCode || '').trim() === targetCode) {
+              if (isCreditNormal(targetCode)) {
+                bal += (parseFloat(l.credit) || 0) - (parseFloat(l.debit) || 0);
+              } else {
+                bal += (parseFloat(l.debit) || 0) - (parseFloat(l.credit) || 0);
+              }
+            }
           });
         });
         resolve(bal);
@@ -28,19 +42,26 @@
           (e.lines || []).forEach(function (l) {
             var c = String(l.accountCode || '').trim();
             if (!c) return;
-            if (!mapAcc[c]) mapAcc[c] = { code: c, name: l.accountName || '', totalDebit: 0, totalCredit: 0, balance: 0 };
-            mapAcc[c].totalDebit += (l.debit || 0);
-            mapAcc[c].totalCredit += (l.credit || 0);
+            if (!mapAcc[c]) {
+              mapAcc[c] = { code: c, name: l.accountName || '', totalDebit: 0, totalCredit: 0, balance: 0 };
+            }
+            mapAcc[c].totalDebit += (parseFloat(l.debit) || 0);
+            mapAcc[c].totalCredit += (parseFloat(l.credit) || 0);
           });
         });
+
         var result = [];
         Object.keys(mapAcc).sort().forEach(function (k) {
           var a = mapAcc[k];
-          a.balance = a.totalDebit - a.totalCredit;
+          if (isCreditNormal(a.code)) {
+            a.balance = a.totalCredit - a.totalDebit;
+          } else {
+            a.balance = a.totalDebit - a.totalCredit;
+          }
           result.push(a);
         });
         resolve(result);
-      }).catch(function (e) { reject({ error: e.message || 'Ledger error' }); });
+      }).catch(function (e) { reject({ error: e.message || 'Ledger calculation error' }); });
     });
   }
 
