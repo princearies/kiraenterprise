@@ -1,95 +1,78 @@
 /**
- * Kira Enterprise V4 — Unified Storage Engine
- * Handles persistence for clients and journal entries across local storage and workers.
+ * Kira Enterprise V4 — Cloudflare D1 Connected Storage Engine
  */
 (function (global) {
   'use strict';
 
-  var PREFIX_ENTRIES = 'kiraV4_entries_';
-  var PREFIX_CLIENTS = 'kiraV4_clients';
+  var API_BASE = '/api';
 
   function getJournalEntries(clientId) {
-    return new Promise(function (resolve) {
-      if (!clientId) return resolve([]);
-      var key = PREFIX_ENTRIES + String(clientId).trim();
-      var entries = [];
-      try {
-        var raw = localStorage.getItem(key);
-        if (raw) {
-          entries = JSON.parse(raw);
+    if (!clientId) return Promise.resolve([]);
+    return fetch(API_BASE + '/entries?clientId=' + encodeURIComponent(clientId))
+      .then(function (res) { return res.ok ? res.json() : []; })
+      .then(function (data) {
+        if (Array.isArray(data) && data.length > 0) {
+          localStorage.setItem('kiraV4_entries_' + clientId, JSON.stringify(data));
+          return data;
         }
-      } catch (e) {
-        console.error('Storage getJournalEntries error:', e);
-      }
-      resolve(entries || []);
-    });
+        // Fallback to localStorage if API returns empty
+        var local = localStorage.getItem('kiraV4_entries_' + clientId);
+        return local ? JSON.parse(local) : [];
+      })
+      .catch(function () {
+        var local = localStorage.getItem('kiraV4_entries_' + clientId);
+        return Promise.resolve(local ? JSON.parse(local) : []);
+      });
   }
 
   function saveJournalEntries(clientId, entries) {
-    return new Promise(function (resolve) {
-      if (!clientId) return resolve(false);
-      var key = PREFIX_ENTRIES + String(clientId).trim();
-      try {
-        localStorage.setItem(key, JSON.stringify(entries || []));
-        resolve(true);
-      } catch (e) {
-        console.error('Storage saveJournalEntries error:', e);
-        resolve(false);
-      }
-    });
+    if (!clientId) return Promise.resolve(false);
+    // Persist locally immediately
+    localStorage.setItem('kiraV4_entries_' + clientId, JSON.stringify(entries || []));
+
+    return fetch(API_BASE + '/entries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clientId: clientId, entries: entries || [] })
+    })
+    .then(function (res) { return res.ok; })
+    .catch(function () { return true; });
   }
 
   function getClients() {
-    return new Promise(function (resolve) {
-      var clients = [];
-      try {
-        var raw = localStorage.getItem(PREFIX_CLIENTS);
-        if (raw) clients = JSON.parse(raw);
-      } catch (e) {
-        console.error('Storage getClients error:', e);
-      }
-      resolve(clients || []);
-    });
+    return fetch(API_BASE + '/clients')
+      .then(function (res) { return res.ok ? res.json() : []; })
+      .then(function (data) {
+        if (Array.isArray(data) && data.length > 0) {
+          localStorage.setItem('kiraV4_clients', JSON.stringify(data));
+          return data;
+        }
+        var local = localStorage.getItem('kiraV4_clients');
+        return local ? JSON.parse(local) : [];
+      })
+      .catch(function () {
+        var local = localStorage.getItem('kiraV4_clients');
+        return Promise.resolve(local ? JSON.parse(local) : []);
+      });
   }
 
   function saveClient(client) {
-    return new Promise(function (resolve) {
-      if (!client || !client.clientId) return resolve(false);
-      getClients().then(function (clients) {
-        var existingIdx = clients.findIndex(function (c) { return c.clientId === client.clientId; });
-        if (existingIdx >= 0) {
-          clients[existingIdx] = client;
-        } else {
-          clients.push(client);
-        }
-        try {
-          localStorage.setItem(PREFIX_CLIENTS, JSON.stringify(clients));
-          resolve(true);
-        } catch (e) {
-          resolve(false);
-        }
-      });
-    });
-  }
-
-  function clearClientEntries(clientId) {
-    return new Promise(function (resolve) {
-      if (!clientId) return resolve(false);
-      try {
-        localStorage.removeItem(PREFIX_ENTRIES + String(clientId).trim());
-        resolve(true);
-      } catch (e) {
-        resolve(false);
-      }
-    });
+    if (!client || !client.clientId) return Promise.resolve(false);
+    
+    return fetch(API_BASE + '/clients', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(client)
+    })
+    .then(function (res) { return res.ok; })
+    .catch(function () { return false; });
   }
 
   var Storage = {
     getJournalEntries: getJournalEntries,
     saveJournalEntries: saveJournalEntries,
     getClients: getClients,
-    saveClient: saveClient,
-    clearClientEntries: clearClientEntries
+    saveClient: saveClient
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = { Storage: Storage };
