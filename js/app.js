@@ -46,8 +46,8 @@
         }
       })
       .catch(function (err) {
-        console.error('CRITICAL: Failed to load mock-data-v4.json.', err);
-        showToast('⚠ Failed to load data. Ensure local server is running!');
+        console.error('Failed to load mock-data-v4.json.', err);
+        showToast('⚠ Failed to load server mock data.');
       });
   }
 
@@ -85,13 +85,35 @@
     var taxInput = document.getElementById('tax-rate');
     if (taxInput) taxInput.value = currentCompany.taxRate;
 
-    // Seed data into LocalStorage for Ledger calculations
+    // Seed mock entries into Storage/LocalStorage if empty
     if (company.clientId && company.journalEntries) {
       var lsKey = 'kiraV4_entries_' + company.clientId;
       var existing = [];
       try { existing = JSON.parse(localStorage.getItem(lsKey) || '[]'); } catch (e) {}
       if (existing.length === 0) {
-        localStorage.setItem(lsKey, JSON.stringify(company.journalEntries || []));
+        // Standardize lines structure so accountCode and accountName exist for Ledger
+        var formattedEntries = company.journalEntries.map(function(e) {
+          return {
+            clientId: e.clientId || company.clientId,
+            id: e.id,
+            date: e.date,
+            description: e.description,
+            lines: (e.lines || []).map(function(l) {
+              var c = String(l.accountCode || l.code || '').trim();
+              var n = l.accountName || l.name || '';
+              if (!n && global.ChartOfAccounts && global.ChartOfAccounts.getAccountName) {
+                n = global.ChartOfAccounts.getAccountName(c);
+              }
+              return {
+                accountCode: c,
+                accountName: n,
+                debit: parseFloat(l.debit) || 0,
+                credit: parseFloat(l.credit) || 0
+              };
+            })
+          };
+        });
+        localStorage.setItem(lsKey, JSON.stringify(formattedEntries));
       }
     }
 
@@ -126,13 +148,14 @@
     if (!container) return;
     container.innerHTML = '<h2>Journal Entry</h2>' +
       '<form id="journal-form" onsubmit="event.preventDefault(); App.saveJournalFromForm();">' +
-      '<label>Date: <input type="date" id="j-date" required></label><br>' +
-      '<label>Description: <input type="text" id="j-desc"></label><br>' +
+      '<label style="margin-right:12px;">Date: <input type="date" id="j-date" required style="padding:4px;border-radius:4px;border:1px solid #334155;background:#0b1220;color:#fff;"></label>' +
+      '<label>Description: <input type="text" id="j-desc" style="padding:4px;width:250px;border-radius:4px;border:1px solid #334155;background:#0b1220;color:#fff;"></label><br><br>' +
       '<div id="entry-lines"></div><br>' +
-      '<button type="button" onclick="App.addLineToForm(\'\',\'\',0,0)">+ Add Line</button> ' +
-      '<button type="submit" id="btn-save-entry">Save Entry</button>' +
+      '<button type="button" onclick="App.addLineToForm(\'\',\'\',0,0)" style="background:#0284c7;color:#fff;padding:6px 12px;border:none;border-radius:4px;margin-right:8px;cursor:pointer;">+ Add Line</button>' +
+      '<button type="submit" id="btn-save-entry" style="background:#16a34a;color:#fff;padding:6px 12px;border:none;border-radius:4px;cursor:pointer;">Save Entry</button>' +
       '</form><div id="journal-list" style="margin-top:20px;"></div>';
     
+    addLineToForm('', '', 0, 0);
     addLineToForm('', '', 0, 0);
     refreshJournalList();
   }
@@ -146,22 +169,22 @@
     } catch (e) { entries = []; }
 
     if (!entries || entries.length === 0) { 
-      list.innerHTML = '<p style="color:#94a3b8;">No entries found for ' + (currentClientId || '') + '.</p>'; 
+      list.innerHTML = '<p style="color:#94a3b8;">No journal entries found for ' + (currentClientId || '') + '.</p>'; 
       return; 
     }
 
-    var html = '<h3>Journal Entries (' + entries.length + '):</h3><table style="width:100%;border-collapse:collapse;"><tr><th>Date</th><th>Description</th><th>Lines</th><th>Actions</th></tr>';
+    var html = '<h3>Journal Entries (' + entries.length + '):</h3><table style="width:100%;border-collapse:collapse;">' +
+      '<thead><tr style="background:#1e293b;color:#fbbf24;"><th style="padding:8px;text-align:left;">Date</th><th style="padding:8px;text-align:left;">Description</th><th style="padding:8px;text-align:center;">Lines</th><th style="padding:8px;text-align:center;">Actions</th></tr></thead><tbody>';
     entries.forEach(function (e) {
       html += '<tr style="border-bottom:1px solid #334155;">';
       html += '<td style="padding:8px;">' + (e.date || '') + '</td>';
       html += '<td style="padding:8px;">' + (e.description || '') + '</td>';
-      html += '<td style="padding:8px;">' + (e.lines ? e.lines.length : 0) + '</td>';
-      html += '<td style="padding:8px;">';
-      html += '<button class="btn-edit" onclick="App.editEntry(\'' + (e.id || '') + '\')">✏️ Edit</button> ';
-      html += '<button class="btn-delete" onclick="App.deleteEntry(\'' + (e.id || '') + '\')">🗑️ Delete</button>';
+      html += '<td style="padding:8px;text-align:center;">' + (e.lines ? e.lines.length : 0) + '</td>';
+      html += '<td style="padding:8px;text-align:center;">';
+      html += '<button class="btn-delete" onclick="App.deleteEntry(\'' + (e.id || '') + '\')" style="background:#ef4444;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">🗑️ Delete</button>';
       html += '</td></tr>';
     });
-    html += '</table>';
+    html += '</tbody></table>';
     list.innerHTML = html;
   }
 
@@ -169,11 +192,11 @@
     var container = document.getElementById('entry-lines');
     if (!container) return;
     var row = document.createElement('div');
-    row.style.margin = '4px 0';
-    row.innerHTML = '<input type="text" class="line-code" placeholder="Account Code" value="' + (accountCode || '') + '" style="width:120px;padding:4px;margin-right:4px;"> ' +
-      '<input type="number" class="line-debit" placeholder="Debit" value="' + (debit || 0) + '" step="0.01" style="width:100px;padding:4px;margin-right:4px;"> ' +
-      '<input type="number" class="line-credit" placeholder="Credit" value="' + (credit || 0) + '" step="0.01" style="width:100px;padding:4px;margin-right:4px;"> ' +
-      '<button type="button" onclick="this.parentElement.remove()" style="background:#ef4444;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">✕</button>';
+    row.style.margin = '6px 0';
+    row.innerHTML = '<input type="text" class="line-code" placeholder="Account Code (e.g. 1000)" value="' + (accountCode || '') + '" style="width:180px;padding:6px;border-radius:4px;border:1px solid #334155;background:#0b1220;color:#fff;margin-right:6px;"> ' +
+      '<input type="number" class="line-debit" placeholder="Debit" value="' + (debit || 0) + '" step="0.01" style="width:110px;padding:6px;border-radius:4px;border:1px solid #334155;background:#0b1220;color:#fff;margin-right:6px;"> ' +
+      '<input type="number" class="line-credit" placeholder="Credit" value="' + (credit || 0) + '" step="0.01" style="width:110px;padding:6px;border-radius:4px;border:1px solid #334155;background:#0b1220;color:#fff;margin-right:6px;"> ' +
+      '<button type="button" onclick="this.parentElement.remove()" style="background:#ef4444;color:#fff;border:none;padding:6px 10px;border-radius:4px;cursor:pointer;">✕</button>';
     container.appendChild(row);
   }
 
@@ -181,13 +204,22 @@
     if (!currentClientId) { showToast('Select a company first'); return; }
     var date = document.getElementById('j-date') ? document.getElementById('j-date').value : '';
     var desc = document.getElementById('j-desc') ? document.getElementById('j-desc').value : '';
+    
     var lines = [];
     document.querySelectorAll('#entry-lines > div').forEach(function (row) {
       var codeEl = row.querySelector('.line-code');
       var drEl = row.querySelector('.line-debit');
       var crEl = row.querySelector('.line-credit');
+      
+      var codeVal = codeEl ? (codeEl.value || '').trim() : '';
+      var nameVal = '';
+      if (global.ChartOfAccounts && global.ChartOfAccounts.getAccountName) {
+        nameVal = global.ChartOfAccounts.getAccountName(codeVal);
+      }
+
       lines.push({
-        accountCode: codeEl ? (codeEl.value || '').trim() : '',
+        accountCode: codeVal,
+        accountName: nameVal,
         debit: parseFloat(drEl ? drEl.value : 0) || 0,
         credit: parseFloat(crEl ? crEl.value : 0) || 0
       });
@@ -197,10 +229,12 @@
     var totalDebit = lines.reduce(function (s, l) { return s + l.debit; }, 0);
     var totalCredit = lines.reduce(function (s, l) { return s + l.credit; }, 0);
 
-    if (!lines.length) { showToast('No journal lines!'); return; }
+    if (!lines.length) { showToast('No journal lines entered!'); return; }
     if (Math.abs(totalDebit - totalCredit) > 0.01) { showToast('Debit ≠ Credit!'); return; }
 
-    var entries = JSON.parse(localStorage.getItem('kiraV4_entries_' + currentClientId) || '[]');
+    var lsKey = 'kiraV4_entries_' + currentClientId;
+    var entries = JSON.parse(localStorage.getItem(lsKey) || '[]');
+    
     entries.push({
       clientId: currentClientId,
       id: 'je-' + currentClientId + '-' + Date.now(),
@@ -209,8 +243,18 @@
       lines: lines
     });
 
-    localStorage.setItem('kiraV4_entries_' + currentClientId, JSON.stringify(entries));
+    localStorage.setItem(lsKey, JSON.stringify(entries));
     showToast('✓ Entry saved');
+    recalcAll();
+  }
+
+  function deleteEntry(id) {
+    if (!currentClientId || !id) return;
+    var lsKey = 'kiraV4_entries_' + currentClientId;
+    var entries = JSON.parse(localStorage.getItem(lsKey) || '[]');
+    entries = entries.filter(function (e) { return e.id !== id; });
+    localStorage.setItem(lsKey, JSON.stringify(entries));
+    showToast('Deleted entry');
     recalcAll();
   }
 
@@ -221,7 +265,7 @@
     global.Ledger.generateGeneralLedger(currentClientId).then(function (rows) {
       if (!rows || rows.length === 0) { panel.innerHTML = '<h2>General Ledger</h2><p>No ledger entries found for ' + currentClientId + '.</p>'; return; }
       var html = '<h2>General Ledger — ' + (currentCompany ? currentCompany.name : currentClientId) + '</h2>';
-      html += '<table style="width:100%;border-collapse:collapse;"><thead><tr style="background:#334155;color:#fbbf24;"><th style="padding:8px;">Code</th><th style="padding:8px;">Account</th><th style="padding:8px;text-align:right;">Debit</th><th style="padding:8px;text-align:right;">Credit</th><th style="padding:8px;text-align:right;">Balance</th></tr></thead><tbody>';
+      html += '<table style="width:100%;border-collapse:collapse;"><thead><tr style="background:#334155;color:#fbbf24;"><th style="padding:8px;text-align:left;">Code</th><th style="padding:8px;text-align:left;">Account</th><th style="padding:8px;text-align:right;">Debit</th><th style="padding:8px;text-align:right;">Credit</th><th style="padding:8px;text-align:right;">Balance</th></tr></thead><tbody>';
       rows.forEach(function (a) {
         html += '<tr style="border-bottom:1px solid #334155;"><td style="padding:8px;">' + a.code + '</td><td style="padding:8px;">' + (a.name || '') + '</td><td align="right" style="padding:8px;">' + a.totalDebit.toFixed(2) + '</td><td align="right" style="padding:8px;">' + a.totalCredit.toFixed(2) + '</td><td align="right" style="padding:8px;">' + a.balance.toFixed(2) + '</td></tr>';
       });
@@ -250,7 +294,7 @@
         pl.companyName = currentCompany.name;
         pl.year = currentCompany.yearEnd || new Date().getFullYear();
       }
-      panel.innerHTML = global.TradingPL.renderPLTab(pl);
+      panel.innerHTML = global.TradingPL.renderPLTab ? global.TradingPL.renderPLTab(pl) : (pl.html || '');
     });
   }
 
@@ -319,6 +363,26 @@
     recalcAll();
   }
 
+  function exportPdf(elementId, fileName) {
+    var element = document.getElementById(elementId);
+    if (!element) {
+      showToast('❌ Report section not found');
+      return;
+    }
+    if (typeof html2pdf === 'undefined') {
+      showToast('⚠ PDF Exporter library loading...');
+      return;
+    }
+    var opt = {
+      margin:       0.5,
+      filename:     (fileName || 'Report') + '.pdf',
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(element).save();
+  }
+
   var App = {
     initApp: initApp,
     changeCompany: changeCompany,
@@ -326,10 +390,12 @@
     renderJournalForm: renderJournalForm,
     addLineToForm: addLineToForm,
     saveJournalFromForm: saveJournalFromForm,
+    deleteEntry: deleteEntry,
     refreshJournalList: refreshJournalList,
     recalcAll: recalcAll,
     updateTaxRate: updateTaxRate,
-    loadCompanyData: loadCompanyData
+    loadCompanyData: loadCompanyData,
+    exportPdf: exportPdf
   };
 
   global.App = App;
