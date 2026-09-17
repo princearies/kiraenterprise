@@ -373,14 +373,54 @@
       showToast('⚠ PDF Exporter library loading...');
       return;
     }
+
+    // Clone element to apply clean print styling without altering dark mode UI
+    var clone = element.cloneNode(true);
+    
+    // Apply print-friendly light background and high-contrast dark text
+    clone.style.backgroundColor = '#ffffff';
+    clone.style.color = '#0f172a';
+    clone.style.padding = '20px';
+    clone.style.width = '100%';
+
+    // Override table and text contrast inside clone
+    var allElements = clone.querySelectorAll('*');
+    allElements.forEach(function (el) {
+      el.style.color = '#000000';
+      if (el.tagName === 'TABLE' || el.tagName === 'TH' || el.tagName === 'TD') {
+        el.style.borderColor = '#cbd5e1';
+      }
+      // Keep headers dark with solid white text
+      if (el.tagName === 'TH' || el.classList.contains('report-header') || el.style.background === '#334155' || el.style.background === '#1e293b') {
+        el.style.backgroundColor = '#1e293b';
+        el.style.color = '#ffffff';
+      } else if (el.tagName === 'TD') {
+        el.style.backgroundColor = '#ffffff';
+        el.style.color = '#0f172a';
+      }
+    });
+
+    var container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.top = '-9999px';
+    container.appendChild(clone);
+    document.body.appendChild(container);
+
     var opt = {
-      margin:       0.5,
-      filename:     (fileName || 'Report') + '.pdf',
+      margin:       0.4,
+      filename:     (fileName || 'KiraV4-Report') + '.pdf',
       image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true },
+      html2canvas:  { scale: 2, useCORS: true, logging: false },
       jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
     };
-    html2pdf().set(opt).from(element).save();
+
+    html2pdf().set(opt).from(clone).save().then(function () {
+      document.body.removeChild(container);
+    }).catch(function (err) {
+      console.error('PDF export error:', err);
+      if (container.parentNode) document.body.removeChild(container);
+    });
   }
 
   var App = {
